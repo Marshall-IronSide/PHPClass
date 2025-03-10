@@ -7,21 +7,21 @@
     echo "I love $txt!<br/>";
     echo phpversion();
     //classes, functions, and user-defined functions are not case-sensitive
-    ECHO "<br/>Hello World!<br>";
+    echo "<br/>Hello World!<br>";
     echo "Hello World!<br>";
-    EcHo "Hello World!<br>";
+    echo "Hello World!<br>";
     # but all variable names are case-sensitive!
     $color = "red";
-    echo "My car is ". $color ."<br/>";
+    echo "My car is " . $color . "<br/>";
     /*echo "My car is".$COLOR."<br/>";
     echo "My car is".$coLOR."<br/>";*/
     $x = 5;
     $y = 4;
-    echo $x + $y."<br/>";
+    echo $x + $y . "<br/>";
 
     //to get the data type
     var_dump($x);
-    var_dump( $x + $y *2);
+    var_dump($x + $y * 2);
     var_dump(3.14);
     var_dump([2, 3, 56]);
     var_dump(NULL);
@@ -29,19 +29,20 @@
 
     //assign the same value to multiple variables
     $x = $y = $z = "Fruit";
-    echo $x."<br/>";
-    echo $y."<br/>";
-    echo $z."<br/>";
+    echo $x . "<br/>";
+    echo $y . "<br/>";
+    echo $z . "<br/>";
 
     //Variables Scope
 
     $x = 5; // global scope
 
-    function myTest() {
-    // using x inside this function will generate an error
-    echo "<p>Variable x inside function is: variable x</p>";
-    $e = 10;
-    echo "<p>Variable y inside function is: $e</p>";
+    function myTest()
+    {
+        // using x inside this function will generate an error
+        echo "<p>Variable x inside function is: variable x</p>";
+        $e = 10;
+        echo "<p>Variable y inside function is: $e</p>";
     }
     myTest();
     echo "<p>Variable x outside function is: $x</p>";
@@ -52,9 +53,10 @@
     $x = 5;
     $y = 10;
 
-    function myTest1() {
-    global $x, $y;
-    echo "<p>Variable x and y inside function is: $x and $y</p>";
+    function myTest1()
+    {
+        global $x, $y;
+        echo "<p>Variable x and y inside function is: $x and $y</p>";
     }
 
     myTest1();
@@ -63,32 +65,50 @@
     //global variables in an array
     $x = 5;
     $y = 10;
-    function myTest2() {
-    $GLOBALS['y'] = $GLOBALS['x'] + $GLOBALS['y'];
+    function myTest2()
+    {
+        $GLOBALS['y'] = $GLOBALS['x'] + $GLOBALS['y'];
     }
 
     myTest2();
     echo $y;
     echo "<br/>";
     $name = 'Linus';
-    function myTest3() {
-    $GLOBALS['name'] = 'Tobias';
+    function myTest3()
+    {
+        $GLOBALS['name'] = 'Tobias';
     }
-myTest3();
-echo $name;
+    myTest3();
+    echo $name;
 
     // when we want a local variable NOT to be deleted when a function is completed
     // we use the static keyword
-    function myTest4() {
+    function myTest4()
+    {
         static $x = 0;
-        echo $x.'<br/>';
+        echo $x . '<br/>';
         $x++;
     }
     echo "<br/>";
     myTest4();
     myTest4();
     myTest4();
+
+    //When using double quotes, variables can be inserted to the string.
+    //When using single quotes, variables have to be inserted using the.
+    $txt1 = "Learn PHP";
+    $txt2 = "W3Schools.com";
+
+    echo "<h2>  $txt1  </h2>";
+    echo '<p>Study PHP at ' . $txt2 . '</p>';
+
+    #print 
+    print "<h2>PHP is Fun!</h2>";
+    print "Hello world!<br>";
+    print "I'm about to learn PHP!";
     
+
+
     ?>
 </body>
 

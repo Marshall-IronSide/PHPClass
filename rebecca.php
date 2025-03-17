@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    <form method="post" action="erwin">
+    <form method="post" action="erwin.php">
         <fieldset>
             <legend>
                 Recherche d'emplois: complétez la fiche

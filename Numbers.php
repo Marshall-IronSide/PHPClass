@@ -46,9 +46,44 @@ $x = 23465.768;
 $int_cast = (int)$x;
 echo $int_cast;
 
+//Casting
 echo"<br/>";
 // cast string to int
 $x = "23465.768";
 $y = (int)$x; 
 echo $y;
+
+$a = 5;
+$b = 5.34;
+$c = "hello";
+$d = true;
+$e = NULL;
+
+$a = (string) $a;
+$b = (string) $b;
+$c = (string) $c;
+$d = (string) $d;
+$e = (string) $e;
+var_dump($a);
+var_dump($b);
+var_dump($c);
+var_dump($d);
+var_dump($e);
+
+$a = 5;
+$b = 5.34;
+$c = "hello";
+$d = true;
+$e = NULL;
+
+$a = (array) $a;
+$b = (array) $b;
+$c = (array) $c;
+$d = (array) $d;
+$e = (array) $e;
+var_dump($a);
+var_dump($b);
+var_dump($c);
+var_dump($d);
+var_dump($e);
 ?>

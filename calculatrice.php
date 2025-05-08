@@ -58,7 +58,7 @@
                         <td><input type="text" name="nombre2" size="10" value="<?= isset($nombre2) ? $nombre2 : '' ?>" /></td>
                     </tr>
                     <td>Résultat</td>
-                    <td><input type="text" name="resultat" size="10" value="<?= isset($resultat) ? $resultat : '' ?>"/></td>
+                    <td><input type="text" name="resultat" size="10" value="<?= isset($resultat) ? $resultat : '' ?>"readonly/></td>
                     <tr>
                         <th>Choisisez</th>
                         <td><input type="submit" name="calcul" value="Addition x + y" /></td>

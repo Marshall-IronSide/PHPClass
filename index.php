@@ -33,7 +33,7 @@ if (isset($_POST['login']) && isset($_POST['password'])) {
                 </p>
             </fieldset>
         </form>
-        Visitez les pages du site <br/>
+        Visitez les pages du site <br />
         <ul>
             <li>
                 <a href="https://esagnde.org/">Informations sur l'école</a>
@@ -41,4 +41,5 @@ if (isset($_POST['login']) && isset($_POST['password'])) {
         </ul>
     </div>
 </body>
+
 </html>

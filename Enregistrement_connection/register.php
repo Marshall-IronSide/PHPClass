@@ -43,6 +43,6 @@
         Mot de passe : <input type="password" name="password" required><br><br>
         <input type="submit" value="S'inscrire">
     </form>
-    <br/><a href="login.php">Se connecter</a>
+    <br/><a href="logi.php">Se connecter</a>
 </body>
 </html>

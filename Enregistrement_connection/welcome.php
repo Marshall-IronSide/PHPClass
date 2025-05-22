@@ -2,7 +2,7 @@
 session_start();
 if(!isset($_SESSION['username'])) {
     // Si l'utilisateur n'est pas connecté, redirigez-le vers la page de connexion
-    header("Location: login.php");
+    header("Location: logi.php");
     exit();
 }
 ?>

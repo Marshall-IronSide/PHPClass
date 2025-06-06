@@ -1,0 +1,93 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background-color: lightcyan;
+}
+h1 {
+    text-align: center;
+    color: #9f46f3;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(-50px);
+    animation: slideDown 1.5s ease forwards;
+    animation-delay: 0s;
+}
+@keyframes slideDown{
+    to{
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.cards {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 30px;
+    gap: 1rem;
+}
+
+.card {
+    background: linear-gradient(135deg, #8e2de2, #4a00e0);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    width: 200px;
+    text-align: center;
+    opacity: 0;
+    transform: translateX(-50px);
+    animation: slideIn 3s ease forwards;
+}
+
+.card:nth-child(1){animation-delay: 0s;}
+.card:nth-child(2){animation-delay: 0.3s;}
+.card:nth-child(3){animation-delay: 0.6s;}
+
+@keyframes slideIn{
+    to{
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+.card h2 {
+    font-size: 1.3rem;
+    margin-bottom: 5px;
+    color: #ffffff;
+}
+.card p {
+    font-size: 1.1rem;
+    color: #ffffff;
+}
+.logout-btn {
+        display: inline-block;
+        margin: 20px 0;
+        padding: 10px 24px;
+        background-color: #ff5252;
+        color: #fff;
+        border: none;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: background 0.2s, box-shadow 0.2s;
+        box-shadow: 0 2px 8px rgba(255, 82, 82, 0.15);
+    }
+    .logout-btn:hover {
+        background-color: #e53935;
+        box-shadow: 0 4px 16px rgba(255, 82, 82, 0.25);
+    }
+
+    .ajout-btn {
+        display: inline-block;
+        margin: 20px 0 10px 0;
+        padding: 10px 24px;
+        background-color: #2196f3;
+        color: #fff;
+        border: none;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: background 0.2s, box-shadow 0.2s;
+        box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15);
+    }
+    .ajout-btn:hover {
+        background-color: #1769aa;
+        box-shadow: 0 4px 16px rgba(33, 150, 243, 0.25);
+    }

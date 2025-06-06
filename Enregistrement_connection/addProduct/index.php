@@ -1,4 +1,8 @@
 <?php include 'data.php'; ?>
+<?php
+session_start();
+$username=isset($_SESSION["username"]) ? $_SESSION["username"]: null;
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -36,6 +40,12 @@
 
 </head>
 <body>
+<?php if($username): ?>
+        <h1>Bienvenue, <?= htmlspecialchars($username)?> !</h1>
+        
+        <?php else:?>
+            <p>Vous n'êtes pas connectés. <a href="login.php">Connexion</a></p>
+            <?php endif;?>
     <h1>Mon Dashboard</h1>
     <div class="cards">
         <div class="card">
@@ -55,7 +65,9 @@
     <div class="chart-container">
         <canvas id="revenueChart" width="600" height="300"></canvas>
     </div>
-    <br/><a href="ajout.php"> Enregistrer une nouvelle commande ou mettre a jour une commande</a>
+    <br>
+    <a href="ajout.php" class="ajout-btn">Enregistrer une nouvelle commande ou mettre à jour une commande</a><br>
+    <a href="logout.php" class="logout-btn">Déconnexion</a>
 <script>
 fetch('chart-data.php')
     .then(response => response.json())
@@ -71,8 +83,8 @@ fetch('chart-data.php')
                 datasets: [{
                     label: 'Revenus (€)',
                     data: revenues,
-                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgb(7, 199, 64)',
+                    borderColor: 'rgb(69, 235, 54)',
                     borderWidth: 1
                 }]
             },

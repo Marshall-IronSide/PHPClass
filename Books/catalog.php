@@ -10,17 +10,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     error_log('POST Data: ' . print_r($_POST, true));
 }
 
-// Modifie le traitement du panier
-if (isset($_POST['add_to_cart'])) {
-    try {
-        addToCart($_POST['book_id'], $_POST['quantity']);
-        header('Location: catalog.php?added=1' . 
-               ($category_filter ? '&category=' . $category_filter : '') . 
-               ($search_filter ? '&search=' . urlencode($search_filter) : ''));
-        exit;
-    } catch (Exception $e) {
-        error_log('Erreur addToCart: ' . $e->getMessage());
+// Traitement ajout au panier
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_to_cart') {
+    $book_id = (int)$_POST['book_id'];
+    $quantity = max(1, (int)$_POST['quantity']);
+
+    // Vérifier si le livre existe déjà dans le panier
+    $stmt = $pdo->prepare("SELECT id, quantity FROM cart WHERE session_id = ? AND book_id = ?");
+    $stmt->execute([$_SESSION['session_id'], $book_id]);
+    $item = $stmt->fetch();
+
+    if ($item) {
+        // Mettre à jour la quantité
+        $new_quantity = $item['quantity'] + $quantity;
+        $stmt = $pdo->prepare("UPDATE cart SET quantity = ? WHERE id = ?");
+        $stmt->execute([$new_quantity, $item['id']]);
+    } else {
+        // Ajouter au panier
+        $stmt = $pdo->prepare("INSERT INTO cart (session_id, book_id, quantity) VALUES (?, ?, ?)");
+        $stmt->execute([$_SESSION['session_id'], $book_id, $quantity]);
     }
+
+    // Redirection pour éviter le repost
+    header('Location: catalog.php?added=1');
+    exit;
 }
 
 // Get categories for filter

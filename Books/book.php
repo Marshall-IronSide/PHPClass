@@ -1,23 +1,32 @@
 <?php
 include 'config.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+$debug_info = [];
 
-// Traitement de l'ajout au panier
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
+// Traitement ajout au panier
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_to_cart') {
     $book_id = (int)$_POST['book_id'];
     $quantity = max(1, (int)$_POST['quantity']);
-    
-    try {
-        addToCart($book_id, $quantity);
-        // Redirection avec message de succès
-        header('Location: book.php?id=' . $book_id . '&added=1');
-        exit;
-    } catch (Exception $e) {
-        $error = "Erreur lors de l'ajout au panier";
+
+    // Vérifier si le livre existe déjà dans le panier
+    $stmt = $pdo->prepare("SELECT id, quantity FROM cart WHERE session_id = ? AND book_id = ?");
+    $stmt->execute([$_SESSION['session_id'], $book_id]);
+    $item = $stmt->fetch();
+
+    if ($item) {
+        // Mettre à jour la quantité
+        $new_quantity = $item['quantity'] + $quantity;
+        $stmt = $pdo->prepare("UPDATE cart SET quantity = ? WHERE id = ?");
+        $stmt->execute([$new_quantity, $item['id']]);
+    } else {
+        // Ajouter au panier
+        $stmt = $pdo->prepare("INSERT INTO cart (session_id, book_id, quantity) VALUES (?, ?, ?)");
+        $stmt->execute([$_SESSION['session_id'], $book_id, $quantity]);
     }
+
+    // Redirection pour éviter le repost
+   header('Location: book.php?id=' . $book_id . '&added=1');
+    exit;
 }
 
 // Get book ID
@@ -47,8 +56,6 @@ $stmt = $pdo->prepare("SELECT b.*, c.name as category_name FROM books b
                        ORDER BY RAND() LIMIT 4");
 $stmt->execute([$book['category_id'], $book_id]);
 $related_books = $stmt->fetchAll();
-
-
 
 // Traduction des catégories
 function traduireCategorie($cat) {
@@ -257,7 +264,7 @@ function traduireCategorie($cat) {
             color: #333;
         }
         
-        .purchase-section {
+        .book-actions {
             display: flex;
             gap: 1rem;
             align-items: center;
@@ -374,6 +381,24 @@ function traduireCategorie($cat) {
             text-align: center;
         }
         
+        .alert-error {
+            background: #f44336;
+        }
+        
+        .alert-debug {
+            background: #ff9800;
+            color: #333;
+            text-align: left;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .out-of-stock {
+            color: #dc3545;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
         footer {
             background: #33475b;
             color: #fff;
@@ -414,7 +439,7 @@ function traduireCategorie($cat) {
                 font-size: 1.8rem;
             }
             
-            .purchase-section {
+            .book-actions {
                 flex-direction: column;
                 align-items: stretch;
             }
@@ -447,6 +472,19 @@ function traduireCategorie($cat) {
 
         <?php if (isset($_GET['added'])): ?>
             <div class="alert">Livre ajouté au panier avec succès !</div>
+        <?php endif; ?>
+
+        <?php if (isset($error)): ?>
+            <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
+        <?php endif; ?>
+
+        <?php if (!empty($debug_info) && isset($_GET['debug'])): ?>
+            <div class="alert alert-debug">
+                <strong>Debug Info:</strong><br>
+                <?php foreach ($debug_info as $info): ?>
+                    <?php echo htmlspecialchars($info); ?><br>
+                <?php endforeach; ?>
+            </div>
         <?php endif; ?>
 
         <div class="book-detail">
@@ -484,20 +522,24 @@ function traduireCategorie($cat) {
                             <div class="meta-label">Prix</div>
                             <div class="meta-value"><?php echo formatPriceFCFA($book['price']); ?></div>
                         </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Stock</div>
+                            <div class="meta-value"><?php echo $book['stock_quantity']; ?></div>
+                        </div>
                     </div>
                     
                     <?php if ($book['stock_quantity'] > 0): ?>
-    <form method="POST" class="book-actions">
-        <input type="hidden" name="book_id" value="<?php echo $book['id']; ?>">
-        <input type="hidden" name="action" value="add_to_cart">
-        <input type="number" name="quantity" value="1" min="1" max="<?php echo $book['stock_quantity']; ?>" class="quantity-input">
-        <button type="submit" name="add_to_cart" class="btn">
-            <i class="fa-solid fa-shopping-cart"></i> Panier
-        </button>
-    </form>
-<?php else: ?>
-    <p class="out-of-stock">Rupture de stock</p>
-<?php endif; ?>
+                        <form method="POST" class="book-actions">
+                            <input type="hidden" name="book_id" value="<?php echo $book['id']; ?>">
+                            <input type="hidden" name="action" value="add_to_cart"> <!-- AJOUTE CETTE LIGNE -->
+                            <input type="number" name="quantity" value="1" min="1" max="<?php echo $book['stock_quantity']; ?>" class="quantity-input">
+                            <button type="submit" name="add_to_cart" class="btn">
+                                <i class="fa-solid fa-shopping-cart"></i> Ajouter au panier
+                            </button>
+                        </form>
+                    <?php else: ?>
+                        <p class="out-of-stock">Rupture de stock</p>
+                    <?php endif; ?>
                     
                     <a href="catalog.php" class="btn btn-secondary">← Retour au catalogue</a>
                 </div>
@@ -566,7 +608,7 @@ function traduireCategorie($cat) {
 
     <script>
         // Animation ajout au panier
-        document.querySelector('form')?.addEventListener('submit', function(e) {
+        document.querySelector('form.book-actions')?.addEventListener('submit', function(e) {
             const btn = this.querySelector('button[name="add_to_cart"]');
             if (btn) {
                 btn.innerHTML = '<i class="fa-solid fa-shopping-cart"></i> Ajout...';

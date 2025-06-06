@@ -26,7 +26,7 @@ if (!isset($_SESSION['cart'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BookNook - Online Bookstore</title>
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;500;400&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #2c3e50;
@@ -509,10 +509,10 @@ if (!isset($_SESSION['cart'])) {
             <a href="#" class="logo">Book<span>Nook</span></a>
             <nav>
                 <ul>
-                    <li><a href="#" onclick="showPage('home')">Home</a></li>
-                    <li><a href="#" onclick="showPage('catalog')">Catalog</a></li>
+                    <li><a href="#" onclick="showPage('home')">Accueil</a></li>
+                    <li><a href="#" onclick="showPage('catalog')">Catalogue</a></li>
                     <li><a href="#" onclick="showPage('cart')" class="cart-icon">
-                        Cart <span class="cart-count"><?php echo count($_SESSION['cart']); ?></span>
+                        Panier <span class="cart-count"><?php echo count($_SESSION['cart']); ?></span>
                     </a></li>
                     <li><a href="#" onclick="showPage('admin')">Admin</a></li>
                 </ul>
@@ -524,13 +524,13 @@ if (!isset($_SESSION['cart'])) {
         <!-- Home Page -->
         <section id="home" class="page">
             <div class="hero">
-                <h1>Discover Your Next Favorite Book</h1>
-                <p>Explore our vast collection of fiction, non-fiction, science fiction, mystery, and biography books. Find your perfect read today!</p>
-                <a href="#" class="btn" onclick="showPage('catalog')">Browse Books</a>
+                <h1>Découvrez votre prochain livre préféré</h1>
+                <p>Explorez notre vaste collection de livres de fiction, non-fiction, science-fiction, mystère et biographie. Trouvez votre lecture idéale dès aujourd'hui !</p>
+                <a href="#" class="btn" onclick="showPage('catalog')">Parcourir les livres</a>
             </div>
 
             <div class="section">
-                <h2 class="section-title">Featured Books</h2>
+                <h2 class="section-title">Livres à la une</h2>
                 <div class="books-grid">
                     <?php
                     // Fetch featured books from database
@@ -539,6 +539,7 @@ if (!isset($_SESSION['cart'])) {
                         $category_stmt = $pdo->prepare("SELECT name FROM categories WHERE id = ?");
                         $category_stmt->execute([$book['category_id']]);
                         $category = $category_stmt->fetchColumn();
+                        $prix_fcfa = number_format($book['price'] * 655, 0, ',', ' ') . ' FCFA';
                     ?>
                     <div class="book-card">
                         <div class="book-cover">
@@ -548,10 +549,10 @@ if (!isset($_SESSION['cart'])) {
                             <h3 class="book-title"><?php echo $book['title']; ?></h3>
                             <p class="book-author"><?php echo $book['author']; ?></p>
                             <p class="book-category"><?php echo $category; ?></p>
-                            <p class="book-price">$<?php echo $book['price']; ?></p>
+                            <p class="book-price"><?php echo $prix_fcfa; ?></p>
                             <div class="book-actions">
-                                <a href="#" class="btn" onclick="showBookDetail(<?php echo $book['id']; ?>)">Details</a>
-                                <a href="#" class="btn btn-accent" onclick="addToCart(<?php echo $book['id']; ?>)">Add to Cart</a>
+                                <a href="#" class="btn" onclick="showBookDetail(<?php echo $book['id']; ?>)">Détails</a>
+                                <a href="#" class="btn btn-accent" onclick="addToCart(<?php echo $book['id']; ?>)">Ajouter au panier</a>
                             </div>
                         </div>
                     </div>
@@ -563,10 +564,10 @@ if (!isset($_SESSION['cart'])) {
         <!-- Catalog Page -->
         <section id="catalog" class="page hidden">
             <div class="section">
-                <h2 class="section-title">Book Catalog</h2>
+                <h2 class="section-title">Catalogue de livres</h2>
                 
                 <div class="category-nav">
-                    <button class="category-btn active" data-category="all">All Books</button>
+                    <button class="category-btn active" data-category="all">Tous les livres</button>
                     <?php
                     // Fetch categories from database
                     $stmt = $pdo->query("SELECT * FROM categories");
@@ -584,6 +585,7 @@ if (!isset($_SESSION['cart'])) {
                         $category_stmt = $pdo->prepare("SELECT name FROM categories WHERE id = ?");
                         $category_stmt->execute([$book['category_id']]);
                         $category = $category_stmt->fetchColumn();
+                        $prix_fcfa = number_format($book['price'] * 655, 0, ',', ' ') . ' FCFA';
                     ?>
                     <div class="book-card" data-category="<?php echo $book['category_id']; ?>">
                         <div class="book-cover">
@@ -593,10 +595,10 @@ if (!isset($_SESSION['cart'])) {
                             <h3 class="book-title"><?php echo $book['title']; ?></h3>
                             <p class="book-author"><?php echo $book['author']; ?></p>
                             <p class="book-category"><?php echo $category; ?></p>
-                            <p class="book-price">$<?php echo $book['price']; ?></p>
+                            <p class="book-price"><?php echo $prix_fcfa; ?></p>
                             <div class="book-actions">
-                                <a href="#" class="btn" onclick="showBookDetail(<?php echo $book['id']; ?>)">Details</a>
-                                <a href="#" class="btn btn-accent" onclick="addToCart(<?php echo $book['id']; ?>)">Add to Cart</a>
+                                <a href="#" class="btn" onclick="showBookDetail(<?php echo $book['id']; ?>)">Détails</a>
+                                <a href="#" class="btn btn-accent" onclick="addToCart(<?php echo $book['id']; ?>)">Ajouter au panier</a>
                             </div>
                         </div>
                     </div>
@@ -615,19 +617,19 @@ if (!isset($_SESSION['cart'])) {
         <!-- Cart Page -->
         <section id="cart" class="page hidden">
             <div class="section">
-                <h2 class="section-title">Your Shopping Cart</h2>
+                <h2 class="section-title">Votre panier</h2>
                 
                 <div class="cart-container">
                     <div id="cart-items">
                         <?php if (empty($_SESSION['cart'])): ?>
-                            <p>Your cart is empty.</p>
+                            <p>Votre panier est vide.</p>
                         <?php else: ?>
                             <table class="cart-table">
                                 <thead>
                                     <tr>
-                                        <th>Book</th>
-                                        <th>Price</th>
-                                        <th>Quantity</th>
+                                        <th>Livre</th>
+                                        <th>Prix</th>
+                                        <th>Quantité</th>
                                         <th>Total</th>
                                         <th>Action</th>
                                     </tr>
@@ -636,7 +638,8 @@ if (!isset($_SESSION['cart'])) {
                                     <?php
                                     $total = 0;
                                     foreach ($_SESSION['cart'] as $id => $item):
-                                        $subtotal = $item['price'] * $item['quantity'];
+                                        $prix_fcfa = $item['price'] * 655;
+                                        $subtotal = $prix_fcfa * $item['quantity'];
                                         $total += $subtotal;
                                     ?>
                                     <tr data-id="<?php echo $id; ?>">
@@ -651,7 +654,7 @@ if (!isset($_SESSION['cart'])) {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>$<?php echo $item['price']; ?></td>
+                                        <td><?php echo number_format($prix_fcfa, 0, ',', ' ') . ' FCFA'; ?></td>
                                         <td>
                                             <div class="quantity-control">
                                                 <button class="quantity-btn" onclick="updateQuantity(<?php echo $id; ?>, -1)">-</button>
@@ -659,7 +662,7 @@ if (!isset($_SESSION['cart'])) {
                                                 <button class="quantity-btn" onclick="updateQuantity(<?php echo $id; ?>, 1)">+</button>
                                             </div>
                                         </td>
-                                        <td>$<?php echo number_format($subtotal, 2); ?></td>
+                                        <td><?php echo number_format($subtotal, 0, ',', ' ') . ' FCFA'; ?></td>
                                         <td>
                                             <button class="remove-btn" onclick="removeFromCart(<?php echo $id; ?>)">×</button>
                                         </td>
@@ -670,18 +673,18 @@ if (!isset($_SESSION['cart'])) {
                             
                             <div class="cart-summary">
                                 <div class="summary-row">
-                                    <span>Subtotal:</span>
-                                    <span>$<?php echo number_format($total, 2); ?></span>
+                                    <span>Sous-total :</span>
+                                    <span><?php echo number_format($total, 0, ',', ' ') . ' FCFA'; ?></span>
                                 </div>
                                 <div class="summary-row">
-                                    <span>Shipping:</span>
-                                    <span>$5.00</span>
+                                    <span>Livraison :</span>
+                                    <span><?php echo number_format(5 * 655, 0, ',', ' ') . ' FCFA'; ?></span>
                                 </div>
                                 <div class="summary-row summary-total">
-                                    <span>Total:</span>
-                                    <span>$<?php echo number_format($total + 5, 2); ?></span>
+                                    <span>Total :</span>
+                                    <span><?php echo number_format($total + (5 * 655), 0, ',', ' ') . ' FCFA'; ?></span>
                                 </div>
-                                <a href="#" class="btn btn-accent" style="width:100%; text-align:center;" onclick="showPage('checkout')">Proceed to Checkout</a>
+                                <a href="#" class="btn btn-accent" style="width:100%; text-align:center;" onclick="showPage('checkout')">Passer la commande</a>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -692,62 +695,62 @@ if (!isset($_SESSION['cart'])) {
         <!-- Checkout Page -->
         <section id="checkout" class="page hidden">
             <div class="section">
-                <h2 class="section-title">Checkout</h2>
+                <h2 class="section-title">Finaliser la commande</h2>
                 
                 <div class="cart-container">
                     <form id="checkout-form">
                         <div class="admin-form">
                             <div class="form-group">
-                                <label for="name">Full Name</label>
+                                <label for="name">Nom complet</label>
                                 <input type="text" id="name" class="form-control" required>
                             </div>
                             <div class="form-group">
-                                <label for="email">Email Address</label>
+                                <label for="email">Adresse email</label>
                                 <input type="email" id="email" class="form-control" required>
                             </div>
                             <div class="form-group">
-                                <label for="address">Shipping Address</label>
+                                <label for="address">Adresse de livraison</label>
                                 <textarea id="address" class="form-control" rows="3" required></textarea>
                             </div>
                             <div class="form-group">
-                                <label for="city">City</label>
+                                <label for="city">Ville</label>
                                 <input type="text" id="city" class="form-control" required>
                             </div>
                             <div class="form-group">
-                                <label for="zip">ZIP Code</label>
+                                <label for="zip">Code postal</label>
                                 <input type="text" id="zip" class="form-control" required>
                             </div>
                             <div class="form-group">
-                                <label for="country">Country</label>
+                                <label for="country">Pays</label>
                                 <select id="country" class="form-control" required>
-                                    <option value="">Select Country</option>
-                                    <option value="us">United States</option>
-                                    <option value="uk">United Kingdom</option>
-                                    <option value="ca">Canada</option>
-                                    <option value="au">Australia</option>
+                                    <option value="">Sélectionnez un pays</option>
+                                    <option value="tg">Togo</option>
+                                    <option value="fr">France</option>
+                                    <option value="ci">Côte d'Ivoire</option>
+                                    <option value="sn">Sénégal</option>
                                 </select>
                             </div>
                             <div class="form-group form-full">
-                                <h3>Payment Information</h3>
+                                <h3>Informations de paiement</h3>
                             </div>
                             <div class="form-group">
-                                <label for="card-name">Name on Card</label>
+                                <label for="card-name">Nom sur la carte</label>
                                 <input type="text" id="card-name" class="form-control" required>
                             </div>
                             <div class="form-group">
-                                <label for="card-number">Card Number</label>
+                                <label for="card-number">Numéro de carte</label>
                                 <input type="text" id="card-number" class="form-control" required>
                             </div>
                             <div class="form-group">
-                                <label for="exp-date">Expiration Date</label>
-                                <input type="text" id="exp-date" class="form-control" placeholder="MM/YY" required>
+                                <label for="exp-date">Date d'expiration</label>
+                                <input type="text" id="exp-date" class="form-control" placeholder="MM/AA" required>
                             </div>
                             <div class="form-group">
                                 <label for="cvv">CVV</label>
                                 <input type="text" id="cvv" class="form-control" required>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-accent">Place Order</button>
+                        <button type="submit" class="btn btn-accent">Valider la commande</button>
                     </form>
                 </div>
             </div>
@@ -756,22 +759,22 @@ if (!isset($_SESSION['cart'])) {
         <!-- Admin Page -->
         <section id="admin" class="page hidden">
             <div class="section">
-                <h2 class="section-title">Admin Dashboard</h2>
+                <h2 class="section-title">Tableau de bord Admin</h2>
                 
                 <div class="admin-panel">
                     <div class="admin-form">
                         <div class="form-group">
-                            <label for="book-title">Book Title</label>
+                            <label for="book-title">Titre du livre</label>
                             <input type="text" id="book-title" class="form-control">
                         </div>
                         <div class="form-group">
-                            <label for="book-author">Author</label>
+                            <label for="book-author">Auteur</label>
                             <input type="text" id="book-author" class="form-control">
                         </div>
                         <div class="form-group">
-                            <label for="book-category">Category</label>
+                            <label for="book-category">Catégorie</label>
                             <select id="book-category" class="form-control">
-                                <option value="">Select Category</option>
+                                <option value="">Sélectionnez une catégorie</option>
                                 <?php
                                 $stmt = $pdo->query("SELECT * FROM categories");
                                 while ($category = $stmt->fetch(PDO::FETCH_ASSOC)):
@@ -781,7 +784,7 @@ if (!isset($_SESSION['cart'])) {
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="book-price">Price ($)</label>
+                            <label for="book-price">Prix (en €)</label>
                             <input type="number" id="book-price" class="form-control" step="0.01">
                         </div>
                         <div class="form-group form-full">
@@ -789,19 +792,19 @@ if (!isset($_SESSION['cart'])) {
                             <textarea id="book-description" class="form-control" rows="4"></textarea>
                         </div>
                         <div class="form-group form-full">
-                            <button class="btn" onclick="addBook()">Add New Book</button>
+                            <button class="btn" onclick="addBook()">Ajouter un nouveau livre</button>
                         </div>
                     </div>
                     
-                    <h3>Book Inventory</h3>
+                    <h3>Inventaire des livres</h3>
                     <table class="cart-table">
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Title</th>
-                                <th>Author</th>
-                                <th>Category</th>
-                                <th>Price</th>
+                                <th>Titre</th>
+                                <th>Auteur</th>
+                                <th>Catégorie</th>
+                                <th>Prix</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -811,16 +814,17 @@ if (!isset($_SESSION['cart'])) {
                                                  FROM books 
                                                  JOIN categories ON books.category_id = categories.id");
                             while ($book = $stmt->fetch(PDO::FETCH_ASSOC)):
+                                $prix_fcfa = number_format($book['price'] * 655, 0, ',', ' ') . ' FCFA';
                             ?>
                             <tr>
                                 <td><?php echo $book['id']; ?></td>
                                 <td><?php echo $book['title']; ?></td>
                                 <td><?php echo $book['author']; ?></td>
                                 <td><?php echo $book['category_name']; ?></td>
-                                <td>$<?php echo $book['price']; ?></td>
+                                <td><?php echo $prix_fcfa; ?></td>
                                 <td>
-                                    <button class="btn" onclick="editBook(<?php echo $book['id']; ?>)">Edit</button>
-                                    <button class="btn btn-accent" onclick="deleteBook(<?php echo $book['id']; ?>)">Delete</button>
+                                    <button class="btn" onclick="editBook(<?php echo $book['id']; ?>)">Modifier</button>
+                                    <button class="btn btn-accent" onclick="deleteBook(<?php echo $book['id']; ?>)">Supprimer</button>
                                 </td>
                             </tr>
                             <?php endwhile; ?>
@@ -835,27 +839,27 @@ if (!isset($_SESSION['cart'])) {
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>About BookNook</h3>
-                    <p>Your premier destination for discovering and purchasing books across all genres. We're passionate about connecting readers with their next favorite book.</p>
+                    <h3>À propos de BookNook</h3>
+                    <p>Votre destination privilégiée pour découvrir et acheter des livres dans tous les genres. Nous avons à cœur de connecter les lecteurs à leur prochain livre préféré.</p>
                 </div>
                 <div class="footer-section">
-                    <h3>Quick Links</h3>
+                    <h3>Liens utiles</h3>
                     <ul>
-                        <li><a href="#" onclick="showPage('home')">Home</a></li>
-                        <li><a href="#" onclick="showPage('catalog')">Book Catalog</a></li>
-                        <li><a href="#" onclick="showPage('cart')">Shopping Cart</a></li>
-                        <li><a href="#" onclick="showPage('admin')">Admin Panel</a></li>
+                        <li><a href="#" onclick="showPage('home')">Accueil</a></li>
+                        <li><a href="#" onclick="showPage('catalog')">Catalogue</a></li>
+                        <li><a href="#" onclick="showPage('cart')">Panier</a></li>
+                        <li><a href="#" onclick="showPage('admin')">Admin</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h3>Contact Us</h3>
-                    <p>Email: info@booknook.com</p>
-                    <p>Phone: (123) 456-7890</p>
-                    <p>Address: 123 Book Street, Reading, RD 12345</p>
+                    <h3>Contact</h3>
+                    <p>Email : info@booknook.com</p>
+                    <p>Téléphone : (123) 456-7890</p>
+                    <p>Adresse : 123 rue du Livre, Lecture, RD 12345</p>
                 </div>
             </div>
             <div class="copyright">
-                <p>&copy; 2023 BookNook Online Bookstore. All rights reserved.</p>
+                <p>&copy; 2023 BookNook Online Bookstore. Tous droits réservés.</p>
             </div>
         </div>
     </footer>

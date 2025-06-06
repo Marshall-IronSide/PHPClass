@@ -18,7 +18,7 @@ session_start();
 
 // Generate session ID if not exists
 if (!isset($_SESSION['session_id'])) {
-    $_SESSION['session_id'] = session_id();
+    $_SESSION['session_id'] = session_create_id();
 }
 
 // Helper functions
@@ -36,10 +36,29 @@ function getCartCount() {
 function addToCart($book_id, $quantity = 1) {
     global $pdo;
     
+    // Vérifier d'abord si le livre existe et a du stock
+    $stmt = $pdo->prepare("SELECT stock_quantity, title FROM books WHERE id = ?");
+    $stmt->execute([$book_id]);
+    $book = $stmt->fetch();
+    
+    if (!$book) {
+        throw new Exception("Livre introuvable");
+    }
+    
     // Check if item already in cart
     $stmt = $pdo->prepare("SELECT id, quantity FROM cart WHERE session_id = ? AND book_id = ?");
     $stmt->execute([$_SESSION['session_id'], $book_id]);
     $existing = $stmt->fetch();
+    
+    $new_quantity = $quantity;
+    if ($existing) {
+        $new_quantity = $existing['quantity'] + $quantity;
+    }
+    
+    // Vérifier le stock disponible
+    if ($new_quantity > $book['stock_quantity']) {
+        throw new Exception("Stock insuffisant. Il ne reste que " . $book['stock_quantity'] . " exemplaire(s) de '" . $book['title'] . "'");
+    }
     
     if ($existing) {
         // Update quantity
@@ -56,6 +75,7 @@ function convertToFCFA($price_eur) {
     $taux = 655;
     return $price_eur * $taux;
 }
+
 function formatPriceFCFA($price_eur) {
     $fcfa = convertToFCFA($price_eur);
     return number_format($fcfa, 0, ',', ' ') . ' FCFA';

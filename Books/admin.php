@@ -1,125 +1,170 @@
 <?php
-include 'config.php';
+session_start();
 
-// Simple admin authentication (in production, use proper authentication)
+// Configuration de la base de données
+$host = 'localhost';
+$port = '3377'; // Ajout du port personnalisé
+$dbname = 'admin_db';
+$username = 'root'; // Remplacez par votre nom d'utilisateur MySQL
+$password = '';     // Remplacez par votre mot de passe MySQL
+
+try {
+    $pdo = new PDO("mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch(PDOException $e) {
+    die("Erreur de connexion à la base de données : " . $e->getMessage());
+}
+
+// Vérifier si l'admin est déjà connecté
 $admin_logged_in = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'];
 
+// Si déjà connecté, rediriger vers le tableau de bord
+if ($admin_logged_in) {
+    header('Location: tdb.php');
+    exit;
+}
+
+// Traitement de la connexion
 if (isset($_POST['admin_login'])) {
-    // Simple login check (in production, use proper password hashing)
-    if ($_POST['admin_username'] === 'admin' && $_POST['admin_password'] === 'password123') {
-        $_SESSION['admin_logged_in'] = true;
-        $admin_logged_in = true;
+    $email = trim($_POST['admin_username']);
+    $password = $_POST['admin_password'];
+    
+    if ($email && $password) {
+        $stmt = $pdo->prepare("SELECT * FROM admins WHERE email = ? AND status = 'active'");
+        $stmt->execute([$email]);
+        $admin = $stmt->fetch();
+        
+        if ($admin && password_verify($password, $admin['password'])) {
+            // Mise à jour de la dernière connexion
+            $update_stmt = $pdo->prepare("UPDATE admins SET last_login = NOW() WHERE id = ?");
+            $update_stmt->execute([$admin['id']]);
+            
+            // Enregistrement de l'activité de connexion
+            $log_stmt = $pdo->prepare("INSERT INTO admin_activity_logs (admin_id, action, description, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)");
+            $log_stmt->execute([
+                $admin['id'],
+                'LOGIN',
+                'Connexion réussie',
+                $_SERVER['REMOTE_ADDR'] ?? 'Unknown',
+                $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown'
+            ]);
+            
+            $_SESSION['admin_logged_in'] = true;
+            $_SESSION['admin_id'] = $admin['id'];
+            $_SESSION['admin_name'] = $admin['full_name'];
+            $_SESSION['admin_email'] = $admin['email'];
+            header('Location: tdb.php');
+            exit;
+        } else {
+            $login_error = "Email ou mot de passe incorrect, ou compte inactif";
+            
+            // Enregistrement de la tentative de connexion échouée
+            if ($admin) {
+                $log_stmt = $pdo->prepare("INSERT INTO admin_activity_logs (admin_id, action, description, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)");
+                $log_stmt->execute([
+                    $admin['id'],
+                    'LOGIN_FAILED',
+                    'Tentative de connexion avec mot de passe incorrect',
+                    $_SERVER['REMOTE_ADDR'] ?? 'Unknown',
+                    $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown'
+                ]);
+            }
+        }
     } else {
-        $login_error = "Invalid credentials";
+        $login_error = "Veuillez remplir tous les champs";
     }
 }
 
+// Traitement de la création de compte
+if (isset($_POST['create_account'])) {
+    $full_name = trim($_POST['full_name']);
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'];
+    
+    if ($full_name && $email && $password && $confirm_password) {
+        if ($password === $confirm_password) {
+            if (strlen($password) >= 8) {
+                // Validation du format de l'email
+                if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    // Vérifier si l'email existe déjà
+                    $stmt = $pdo->prepare("SELECT id FROM admins WHERE email = ?");
+                    $stmt->execute([$email]);
+                    
+                    if (!$stmt->fetch()) {
+                        // Hasher le mot de passe
+                        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                        
+                        // Insérer le nouvel admin
+                        $stmt = $pdo->prepare("INSERT INTO admins (full_name, email, password, status) VALUES (?, ?, ?, 'active')");
+                        if ($stmt->execute([$full_name, $email, $hashed_password])) {
+                            $new_admin_id = $pdo->lastInsertId();
+                            
+                            // Enregistrement de l'activité de création de compte
+                            $log_stmt = $pdo->prepare("INSERT INTO admin_activity_logs (admin_id, action, description, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)");
+                            $log_stmt->execute([
+                                $new_admin_id,
+                                'ACCOUNT_CREATED',
+                                'Nouveau compte administrateur créé',
+                                $_SERVER['REMOTE_ADDR'] ?? 'Unknown',
+                                $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown'
+                            ]);
+                            
+                            $success_message = "Compte créé avec succès ! Vous pouvez maintenant vous connecter.";
+                            $show_login = true;
+                        } else {
+                            $create_error = "Erreur lors de la création du compte";
+                        }
+                    } else {
+                        $create_error = "Un compte avec cette adresse email existe déjà";
+                    }
+                } else {
+                    $create_error = "Format d'email invalide";
+                }
+            } else {
+                $create_error = "Le mot de passe doit contenir au moins 8 caractères";
+            }
+        } else {
+            $create_error = "Les mots de passe ne correspondent pas";
+        }
+    } else {
+        $create_error = "Veuillez remplir tous les champs";
+    }
+}
+
+// Traitement de la déconnexion
 if (isset($_POST['logout'])) {
+    if (isset($_SESSION['admin_id'])) {
+        // Enregistrement de l'activité de déconnexion
+        $log_stmt = $pdo->prepare("INSERT INTO admin_activity_logs (admin_id, action, description, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)");
+        $log_stmt->execute([
+            $_SESSION['admin_id'],
+            'LOGOUT',
+            'Déconnexion',
+            $_SERVER['REMOTE_ADDR'] ?? 'Unknown',
+            $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown'
+        ]);
+    }
+    
     unset($_SESSION['admin_logged_in']);
+    unset($_SESSION['admin_id']);
+    unset($_SESSION['admin_name']);
+    unset($_SESSION['admin_email']);
     $admin_logged_in = false;
 }
 
-// Handle book operations
-if ($admin_logged_in) {
-    // Add new book
-    if (isset($_POST['add_book'])) {
-        $title = trim($_POST['title']);
-        $author = trim($_POST['author']);
-        $isbn = trim($_POST['isbn']);
-        $price = floatval($_POST['price']);
-        $stock_quantity = intval($_POST['stock_quantity']);
-        $category_id = intval($_POST['category_id']);
-        $description = trim($_POST['description']);
-        $image_url = trim($_POST['image_url']);
-        $featured = isset($_POST['featured']) ? 1 : 0;
-        
-        if ($title && $author && $price > 0) {
-            $stmt = $pdo->prepare("INSERT INTO books (title, author, isbn, price, stock_quantity, category_id, description, image_url, featured) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            if ($stmt->execute([$title, $author, $isbn, $price, $stock_quantity, $category_id, $description, $image_url, $featured])) {
-                $success_message = "Book added successfully!";
-            } else {
-                $error_message = "Error adding book.";
-            }
-        } else {
-            $error_message = "Please fill in all required fields.";
-        }
+// Fonction pour obtenir les statistiques des admins (optionnel)
+function getAdminStats($pdo) {
+    try {
+        $stmt = $pdo->query("SELECT 
+            COUNT(*) as total_admins,
+            SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_admins,
+            SUM(CASE WHEN last_login >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) as recent_logins
+            FROM admins");
+        return $stmt->fetch();
+    } catch (Exception $e) {
+        return null;
     }
-    
-    // Update book
-    if (isset($_POST['update_book'])) {
-        $book_id = intval($_POST['book_id']);
-        $title = trim($_POST['title']);
-        $author = trim($_POST['author']);
-        $isbn = trim($_POST['isbn']);
-        $price = floatval($_POST['price']);
-        $stock_quantity = intval($_POST['stock_quantity']);
-        $category_id = intval($_POST['category_id']);
-        $description = trim($_POST['description']);
-        $image_url = trim($_POST['image_url']);
-        $featured = isset($_POST['featured']) ? 1 : 0;
-        
-        if ($title && $author && $price > 0) {
-            $stmt = $pdo->prepare("UPDATE books SET title = ?, author = ?, isbn = ?, price = ?, stock_quantity = ?, category_id = ?, description = ?, image_url = ?, featured = ? WHERE id = ?");
-            if ($stmt->execute([$title, $author, $isbn, $price, $stock_quantity, $category_id, $description, $image_url, $featured, $book_id])) {
-                $success_message = "Book updated successfully!";
-            } else {
-                $error_message = "Error updating book.";
-            }
-        } else {
-            $error_message = "Please fill in all required fields.";
-        }
-    }
-    
-    // Delete book
-    if (isset($_POST['delete_book'])) {
-        $book_id = intval($_POST['book_id']);
-        $stmt = $pdo->prepare("DELETE FROM books WHERE id = ?");
-        if ($stmt->execute([$book_id])) {
-            $success_message = "Book deleted successfully!";
-        } else {
-            $error_message = "Error deleting book.";
-        }
-    }
-    
-    // Add category
-    if (isset($_POST['add_category'])) {
-        $category_name = trim($_POST['category_name']);
-        if ($category_name) {
-            $stmt = $pdo->prepare("INSERT INTO categories (name) VALUES (?)");
-            if ($stmt->execute([$category_name])) {
-                $success_message = "Category added successfully!";
-            } else {
-                $error_message = "Error adding category.";
-            }
-        }
-    }
-    
-    // Delete category
-    if (isset($_POST['delete_category'])) {
-        $category_id = intval($_POST['category_id']);
-        $stmt = $pdo->prepare("DELETE FROM categories WHERE id = ?");
-        if ($stmt->execute([$category_id])) {
-            $success_message = "Category deleted successfully!";
-        } else {
-            $error_message = "Error deleting category.";
-        }
-    }
-    
-    // Get all books
-    $books = $pdo->query("SELECT b.*, c.name as category_name FROM books b LEFT JOIN categories c ON b.category_id = c.id ORDER BY b.created_at DESC")->fetchAll();
-    
-    // Get all categories
-    $categories = $pdo->query("SELECT * FROM categories ORDER BY name")->fetchAll();
-    
-    // Get recent orders
-    $recent_orders = $pdo->query("SELECT o.*, COUNT(oi.id) as item_count FROM orders o LEFT JOIN order_items oi ON o.id = oi.order_id GROUP BY o.id ORDER BY o.created_at DESC LIMIT 10")->fetchAll();
-    
-    // Get statistics
-    $stats = [];
-    $stats['total_books'] = $pdo->query("SELECT COUNT(*) FROM books")->fetchColumn();
-    $stats['total_orders'] = $pdo->query("SELECT COUNT(*) FROM orders")->fetchColumn();
-    $stats['total_revenue'] = $pdo->query("SELECT SUM(total_amount) FROM orders WHERE status = 'completed'")->fetchColumn() ?: 0;
-    $stats['low_stock'] = $pdo->query("SELECT COUNT(*) FROM books WHERE stock_quantity < 10")->fetchColumn();
 }
 ?>
 
@@ -128,7 +173,7 @@ if ($admin_logged_in) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BookStore | Compte</title>
+    <title>BookStore | Administration</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -375,6 +420,64 @@ if ($admin_logged_in) {
             transition: width 0.3s, background 0.3s;
         }
         
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .stats-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            color: white;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .stats-info h4 {
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
         @media (max-width: 768px) {
             .card-container {
                 flex-direction: column;
@@ -390,24 +493,62 @@ if ($admin_logged_in) {
 <body>
     <div class="container">
         <div class="logo">
-            <i class="fas fa-book-open"></i>
-            <h1>BookStore</h1>
+            <i class="fas fa-user-shield"></i>
+            <h1>BookStore Admin</h1>
         </div>
+        
+        <?php 
+        // Affichage des statistiques (optionnel)
+        $stats = getAdminStats($pdo);
+        if ($stats): 
+        ?>
+        <div class="stats-info">
+            <h4>Statistiques de l'administration</h4>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-number"><?php echo $stats['total_admins']; ?></span>
+                    <span class="stat-label">Total Admins</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number"><?php echo $stats['active_admins']; ?></span>
+                    <span class="stat-label">Actifs</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number"><?php echo $stats['recent_logins']; ?></span>
+                    <span class="stat-label">Connexions récentes</span>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
         
         <div class="card-container">
             <!-- Login Card -->
-            <div class="card">
+            <div class="card" id="loginCard">
                 <div class="card-header">
-                    <h2>Connexion à votre compte</h2>
-                    <p>Ravi de vous revoir sur BookStore !</p>
+                    <h2>Connexion Administration</h2>
+                    <p>Accédez au panneau d'administration BookStore</p>
                 </div>
                 <div class="card-body">
-                    <form id="loginForm">
+                    <?php if (isset($login_error)): ?>
+                        <div class="alert alert-error">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <?php echo $login_error; ?>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <?php if (isset($success_message)): ?>
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i>
+                            <?php echo $success_message; ?>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <form id="loginForm" method="POST" action="">
                         <div class="form-group">
                             <label for="loginEmail">Adresse e-mail</label>
                             <div class="input-icon">
                                 <i class="fas fa-envelope"></i>
-                                <input type="email" id="loginEmail" placeholder="Entrez votre e-mail" required>
+                                <input type="email" id="loginEmail" name="admin_username" placeholder="admin@bookstore.com" required>
                             </div>
                         </div>
                         
@@ -415,19 +556,19 @@ if ($admin_logged_in) {
                             <label for="loginPassword">Mot de passe</label>
                             <div class="input-icon">
                                 <i class="fas fa-lock"></i>
-                                <input type="password" id="loginPassword" placeholder="Entrez votre mot de passe" required>
+                                <input type="password" id="loginPassword" name="admin_password" placeholder="Entrez votre mot de passe" required>
                             </div>
                         </div>
                         
                         <div class="form-group">
-                            <div class="input-icon">
-                                <button type="submit" class="btn">Se connecter</button>
-                            </div>
+                            <button type="submit" class="btn" name="admin_login">
+                                <i class="fas fa-sign-in-alt"></i> Se connecter
+                            </button>
                         </div>
                         
                         <div class="links">
                             <a href="#" id="forgotPassword">Mot de passe oublié ?</a>
-                            <a href="#" id="createAccountLink">Créer un compte</a>
+                            <a href="#" id="createAccountLink">Créer un compte admin</a>
                         </div>
                     </form>
                     
@@ -442,16 +583,23 @@ if ($admin_logged_in) {
             <!-- Create Account Card (Hidden by default) -->
             <div class="card" id="createAccountCard" style="display: none;">
                 <div class="card-header">
-                    <h2>Créer un nouveau compte</h2>
-                    <p>Rejoignez notre communauté de lecteurs !</p>
+                    <h2>Créer un compte admin</h2>
+                    <p>Nouveau compte d'administration</p>
                 </div>
                 <div class="card-body">
-                    <form id="createAccountForm">
+                    <?php if (isset($create_error)): ?>
+                        <div class="alert alert-error">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <?php echo $create_error; ?>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <form id="createAccountForm" method="POST" action="">
                         <div class="form-group">
                             <label for="fullName">Nom complet</label>
                             <div class="input-icon">
                                 <i class="fas fa-user"></i>
-                                <input type="text" id="fullName" placeholder="Entrez votre nom complet" required>
+                                <input type="text" id="fullName" name="full_name" placeholder="Entrez votre nom complet" required>
                             </div>
                         </div>
                         
@@ -459,7 +607,7 @@ if ($admin_logged_in) {
                             <label for="email">Adresse e-mail</label>
                             <div class="input-icon">
                                 <i class="fas fa-envelope"></i>
-                                <input type="email" id="email" placeholder="Entrez votre e-mail" required>
+                                <input type="email" id="email" name="email" placeholder="Entrez votre e-mail" required>
                             </div>
                         </div>
                         
@@ -467,7 +615,7 @@ if ($admin_logged_in) {
                             <label for="password">Mot de passe</label>
                             <div class="input-icon">
                                 <i class="fas fa-lock"></i>
-                                <input type="password" id="password" placeholder="Créez un mot de passe" required>
+                                <input type="password" id="password" name="password" placeholder="Créez un mot de passe" required>
                             </div>
                             <div class="password-strength">
                                 <div class="strength-meter" id="passwordStrength"></div>
@@ -478,14 +626,14 @@ if ($admin_logged_in) {
                             <label for="confirmPassword">Confirmez le mot de passe</label>
                             <div class="input-icon">
                                 <i class="fas fa-lock"></i>
-                                <input type="password" id="confirmPassword" placeholder="Confirmez votre mot de passe" required>
+                                <input type="password" id="confirmPassword" name="confirm_password" placeholder="Confirmez votre mot de passe" required>
                             </div>
                         </div>
                         
                         <div class="form-group">
-                            <div class="input-icon">
-                                <button type="submit" class="btn">Créer le compte</button>
-                            </div>
+                            <button type="submit" class="btn" name="create_account">
+                                <i class="fas fa-user-plus"></i> Créer le compte
+                            </button>
                         </div>
                     </form>
                     
@@ -501,22 +649,22 @@ if ($admin_logged_in) {
                 </div>
             </div>
             
-            <!-- Account Benefits (Visible on login screen) -->
+            <!-- Admin Benefits -->
             <div class="create-account-info" id="benefitsInfo">
-                <h3>Pourquoi créer un compte ?</h3>
+                <h3>Administration BookStore</h3>
                 <ul class="benefits">
-                    <li><i class="fas fa-shopping-cart"></i> Paiement plus rapide et suivi des commandes</li>
-                    <li><i class="fas fa-bookmark"></i> Sauvegardez vos livres et auteurs préférés</li>
-                    <li><i class="fas fa-tags"></i> Profitez de réductions et offres exclusives</li>
-                    <li><i class="fas fa-bell"></i> Soyez informé des nouvelles parutions</li>
-                    <li><i class="fas fa-star"></i> Gagnez des récompenses avec notre programme de fidélité</li>
+                    <li><i class="fas fa-cogs"></i> Gestion complète du catalogue de livres</li>
+                    <li><i class="fas fa-users"></i> Administration des comptes utilisateurs</li>
+                    <li><i class="fas fa-chart-line"></i> Tableaux de bord et statistiques</li>
+                    <li><i class="fas fa-shopping-cart"></i> Suivi des commandes et ventes</li>
+                    <li><i class="fas fa-shield-alt"></i> Sécurité et contrôle d'accès</li>
                 </ul>
-                <p>Rejoignez notre communauté de plus de 500 000 lecteurs qui profitent de recommandations personnalisées et d'avantages exclusifs aux membres.</p>
+                <p>Interface d'administration sécurisée pour gérer efficacement votre librairie en ligne BookStore.</p>
             </div>
         </div>
         
         <div class="footer">
-            <p>&copy; 2023 BookStore. Tous droits réservés. | 
+            <p>&copy; 2023 BookStore Administration. Tous droits réservés. | 
                 <a href="#">Politique de confidentialité</a> | 
                 <a href="#">Conditions d'utilisation</a>
             </p>
@@ -525,7 +673,7 @@ if ($admin_logged_in) {
     
     <script>
         // DOM Elements
-        const loginCard = document.querySelector('.card');
+        const loginCard = document.getElementById('loginCard');
         const createAccountCard = document.getElementById('createAccountCard');
         const benefitsInfo = document.getElementById('benefitsInfo');
         const createAccountLink = document.getElementById('createAccountLink');
@@ -549,62 +697,45 @@ if ($admin_logged_in) {
         });
         
         // Password strength indicator
-        passwordInput.addEventListener('input', function() {
-            const password = passwordInput.value;
-            let strength = 0;
-            
-            if (password.length >= 8) strength += 25;
-            if (/[A-Z]/.test(password)) strength += 25;
-            if (/[0-9]/.test(password)) strength += 25;
-            if (/[^A-Za-z0-9]/.test(password)) strength += 25;
-            
-            passwordStrength.style.width = strength + '%';
-            
-            // Update color based on strength
-            if (strength < 50) {
-                passwordStrength.style.background = '#dc3545'; // Rouge
-            } else if (strength < 75) {
-                passwordStrength.style.background = '#ffc107'; // Jaune
-            } else {
-                passwordStrength.style.background = '#28a745'; // Vert
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function() {
+                const password = passwordInput.value;
+                let strength = 0;
+                
+                if (password.length >= 8) strength += 25;
+                if (/[A-Z]/.test(password)) strength += 25;
+                if (/[0-9]/.test(password)) strength += 25;
+                if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+                
+                passwordStrength.style.width = strength + '%';
+                
+                // Update color based on strength
+                if (strength < 50) {
+                    passwordStrength.style.background = '#dc3545'; // Rouge
+                } else if (strength < 75) {
+                    passwordStrength.style.background = '#ffc107'; // Jaune
+                } else {
+                    passwordStrength.style.background = '#28a745'; // Vert
+                }
+            });
+        }
+        
+        // Auto-focus sur le premier champ
+        document.addEventListener('DOMContentLoaded', function() {
+            const firstInput = document.querySelector('#loginCard input[type="email"]');
+            if (firstInput) {
+                firstInput.focus();
             }
         });
         
-        // Form validation and submission
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            // Simple validation
-            if (email && password) {
-                alert('Connexion réussie ! Redirection vers votre compte...');
-                // Dans une vraie application, la connexion serait traitée côté serveur
-            }
+        <?php if (isset($show_login) && $show_login): ?>
+        // Afficher automatiquement le formulaire de connexion après création du compte
+        document.addEventListener('DOMContentLoaded', function() {
+            loginCard.style.display = 'block';
+            createAccountCard.style.display = 'none';
+            benefitsInfo.style.display = 'block';
         });
-        
-        document.getElementById('createAccountForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const fullName = document.getElementById('fullName').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            // Validation
-            if (password !== confirmPassword) {
-                alert('Les mots de passe ne correspondent pas !');
-                return;
-            }
-            
-            if (password.length < 8) {
-                alert('Le mot de passe doit contenir au moins 8 caractères !');
-                return;
-            }
-            
-            // Successful account creation
-            alert(`Compte créé avec succès !\nBienvenue sur BookStore, ${fullName} !`);
-            // Dans une vraie application, ces données seraient envoyées au serveur
-        });
+        <?php endif; ?>
     </script>
 </body>
 </html>

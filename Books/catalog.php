@@ -71,9 +71,6 @@ $sql = "SELECT b.*, c.name as category_name FROM books b
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $books = $stmt->fetchAll();
-
-
-
 ?>
 
 <!DOCTYPE html>
@@ -83,309 +80,16 @@ $books = $stmt->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catalogue de livres - BookStore</title>
     <!-- Font Awesome CDN -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f8f9fa;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        
-        header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1rem 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .logo {
-            font-size: 1.8rem;
-            font-weight: bold;
-        }
-        
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 2rem;
-        }
-        
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            transition: opacity 0.3s;
-        }
-        
-        .nav-links a:hover {
-            opacity: 0.8;
-        }
-        
-        .cart-icon {
-            position: relative;
-            background: rgba(255,255,255,0.2);
-            padding: 10px 15px;
-            border-radius: 25px;
-            text-decoration: none;
-            color: white;
-        }
-        
-        .cart-count {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #ff4757;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .filters {
-            background: #fff;
-            padding: 2rem 1.5rem;
-            margin-bottom: 2rem;
-            border-radius: 18px;
-            box-shadow: 0 4px 24px rgba(102, 126, 234, 0.08);
-            max-width: 1100px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .filters-form {
-            display: flex;
-            gap: 1.5rem;
-            align-items: flex-end;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        
-        .filter-group {
-            flex: 1 1 250px;
-            min-width: 220px;
-        }
-        
-        .filter-group label {
-            display: block;
-            margin-bottom: 0.6rem;
-            font-weight: bold;
-            color: #222;
-            font-size: 1.08rem;
-        }
-        
-        .filter-group select,
-        .filter-group input[type="text"] {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1.5px solid #d1d5db;
-            border-radius: 10px;
-            font-size: 1.08rem;
-            background: #f7f9fc;
-            transition: border 0.2s;
-            outline: none;
-        }
-        
-        .filter-group select:focus,
-        .filter-group input[type="text"]:focus {
-            border-color: #667eea;
-            background: #fff;
-        }
-        
-        .btn {
-            background: #667eea;
-            color: white;
-            padding: 12px 28px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 1.08rem;
-            font-weight: 500;
-            transition: background 0.2s, box-shadow 0.2s;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
-        }
-        
-        .btn:hover {
-            background: #5563c1;
-        }
-        
-        .btn-secondary {
-            background: #6c757d;
-            color: #fff;
-            margin-left: 0.5rem;
-        }
-        
-        .btn-secondary:hover {
-            background: #495057;
-        }
-        
-        .books-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-        
-        .book-card {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        
-        .book-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-        }
-        
-        .book-image {
-            width: 100%;
-            height: 250px;
-            object-fit: cover;
-        }
-        
-        .book-info {
-            padding: 1.5rem;
-        }
-        
-        .book-title {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-            color: #333;
-        }
-        
-        .book-author {
-            color: #666;
-            margin-bottom: 0.5rem;
-        }
-        
-        .book-category {
-            background: #e1f5fe;
-            color: #0277bd;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            display: inline-block;
-            margin-bottom: 1rem;
-        }
-        
-        .book-price {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 1rem;
-        }
-        
-        .book-stock {
-            font-size: 0.9rem;
-            color: #28a745;
-            margin-bottom: 1rem;
-        }
-        
-        .book-stock.low {
-            color: #ffc107;
-        }
-        
-        .book-stock.out {
-            color: #dc3545;
-        }
-        
-        .book-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .quantity-input {
-            width: 60px;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            text-align: center;
-        }
-        
-        .alert {
-            background: #4caf50;
-            color: white;
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 5px;
-            text-align: center;
-        }
-        
-        .no-results {
-            text-align: center;
-            padding: 3rem;
-            color: #666;
-        }
-        
-        .results-count {
-            margin-bottom: 1rem;
-            color: #666;
-        }
-        
-        footer {
-            background: #2c3e50;
-            color: white;
-            text-align: center;
-            padding: 2rem 0;
-            margin-top: 3rem;
-        }
-        
-        .category-filters {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-        .category-btn {
-            padding: 10px 24px;
-            border-radius: 25px;
-            border: 2px solid #2196f3;
-            background: transparent;
-            color: #2196f3;
-            font-weight: bold;
-            text-decoration: none;
-            transition: background 0.2s, color 0.2s;
-            font-size: 1rem;
-        }
-        .category-btn.active,
-        .category-btn:hover {
-            background: #2196f3;
-            color: #fff;
-            border-color: #2196f3;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- CSS externe -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
         <nav class="container">
-            <div class="logo"><i class="fa-solid fa-book-open"></i> BookStore</div>
+            <a href="index.php" class="logo" style="text-decoration:none; color:inherit;">
+                <i class="fa-solid fa-book-open"></i> BookStore
+            </a>
             <ul class="nav-links">
                 <li><a href="index.php">Accueil</a></li>
                 <li><a href="catalog.php">Livres</a></li>
@@ -490,37 +194,37 @@ $books = $stmt->fetchAll();
     </div>
 
     <!-- Pied de page commun -->
-<footer style="background: #33475b; color: #fff; padding: 3rem 0 1.5rem 0; margin-top: 3rem;">
-    <div style="max-width: 1200px; margin: auto; display: flex; flex-wrap: wrap; gap: 2rem; justify-content: space-between;">
-        <div style="flex: 1 1 250px; min-width: 220px;">
-            <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; border-bottom: 3px solid #5ec6fa; display: inline-block; padding-bottom: 0.2rem;">À propos de BookStore</h2>
-            <p style="margin-top: 1rem;">
-                Votre destination privilégiée pour découvrir et acheter des livres dans tous les genres. Nous avons à cœur de connecter les lecteurs à leur prochain livre préféré.
-            </p>
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h2>À propos de BookStore</h2>
+                <p>
+                    Votre destination privilégiée pour découvrir et acheter des livres dans tous les genres. Nous avons à cœur de connecter les lecteurs à leur prochain livre préféré.
+                </p>
+            </div>
+            <div class="footer-section links">
+                <h2>Liens utiles</h2>
+                <ul>
+                    <li><a href="index.php">Accueil</a></li>
+                    <li><a href="catalog.php">Catalogue</a></li>
+                    <li><a href="cart.php">Panier</a></li>
+                    <li><a href="admin.php">Admin</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h2>Contact</h2>
+                <ul>
+                    <li>Email : marshallironside7@gmail.com</li>
+                    <li>Téléphone : +228 70 09 74 54</li>
+                    <li>Adresse : Avédji-Lomé TOGO</li>
+                </ul>
+            </div>
         </div>
-        <div style="flex: 1 1 180px; min-width: 180px;">
-            <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; border-bottom: 3px solid #5ec6fa; display: inline-block; padding-bottom: 0.2rem;">Liens utiles</h2>
-            <ul style="list-style: none; padding: 0; margin-top: 1rem;">
-                <li><a href="index.php" style="color: #fff; text-decoration: underline;">Accueil</a></li>
-                <li><a href="catalog.php" style="color: #fff; text-decoration: underline;">Catalogue</a></li>
-                <li><a href="cart.php" style="color: #fff; text-decoration: underline;">Panier</a></li>
-                <li><a href="admin.php" style="color: #fff; text-decoration: underline;">Admin</a></li>
-            </ul>
+        <hr>
+        <div class="footer-copyright">
+            &copy; 2025 BookStore. Tous droits réservés.
         </div>
-        <div style="flex: 1 1 250px; min-width: 220px;">
-            <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; border-bottom: 3px solid #5ec6fa; display: inline-block; padding-bottom: 0.2rem;">Contact</h2>
-            <ul style="list-style: none; padding: 0; margin-top: 1rem;">
-                <li>Email : marshallironside7@gmail.com</li>
-                <li>Téléphone : +228 70 09 74 54</li>
-                <li>Adresse : Avédji-Lomé TOGO</li>
-            </ul>
-        </div>
-    </div>
-    <hr style="border: none; border-top: 1px solid #46607a; margin: 2rem 0 1rem 0;">
-    <div style="text-align: center; color: #cfd8dc;">
-        &copy; 2025 BookStore. Tous droits réservés.
-    </div>
-</footer>
+    </footer>
 
     <script>
         // Soumission automatique du formulaire au changement de catégorie

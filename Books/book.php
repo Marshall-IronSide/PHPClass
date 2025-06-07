@@ -449,7 +449,9 @@ function traduireCategorie($cat) {
 <body>
     <header>
         <nav class="container">
-            <div class="logo"><i class="fa-solid fa-book-open"></i> BookStore</div>
+            <a href="index.php" class="logo" style="text-decoration:none; color:inherit;">
+                <i class="fa-solid fa-book-open"></i> BookStore
+            </a>
             <ul class="nav-links">
                 <li><a href="index.php">Accueil</a></li>
                 <li><a href="catalog.php">Livres</a></li>

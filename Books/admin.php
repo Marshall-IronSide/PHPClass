@@ -175,324 +175,11 @@ function getAdminStats($pdo) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BookStore | Administration</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            max-width: 1200px;
-            width: 100%;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            margin-bottom: 30px;
-            color: white;
-        }
-        
-        .logo i {
-            font-size: 2.5rem;
-            margin-right: 15px;
-        }
-        
-        .logo h1 {
-            font-size: 2.8rem;
-            font-weight: bold;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        
-        .card-container {
-            display: flex;
-            justify-content: center;
-            width: 100%;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
-            width: 100%;
-            max-width: 450px;
-            overflow: hidden;
-            transition: transform 0.4s, box-shadow 0.4s;
-        }
-        
-        .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        }
-        
-        .card-header {
-            background: #2c3e50;
-            color: white;
-            padding: 25px;
-            text-align: center;
-        }
-        
-        .card-header h2 {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
-        }
-        
-        .card-body {
-            padding: 30px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-        
-        .input-icon {
-            position: relative;
-        }
-        
-        .input-icon i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #667eea;
-        }
-        
-        .input-icon input {
-            width: 100%;
-            padding: 14px 14px 14px 45px;
-            border: 2px solid #e1e5ee;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-        
-        .input-icon input:focus {
-            border-color: #667eea;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
-        }
-        
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 14px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s, transform 0.2s;
-            margin-top: 10px;
-        }
-        
-        .btn:hover {
-            background: #5a6fd8;
-            transform: translateY(-2px);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
-        .btn-secondary {
-            background: #6c757d;
-        }
-        
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-        
-        .btn-tertiary {
-            background: transparent;
-            color: #667eea;
-            border: 2px solid #667eea;
-        }
-        
-        .btn-tertiary:hover {
-            background: rgba(102, 126, 234, 0.1);
-        }
-        
-        .links {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-        
-        .links a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s;
-        }
-        
-        .links a:hover {
-            color: #5a6fd8;
-            text-decoration: underline;
-        }
-        
-        .footer {
-            margin-top: 40px;
-            color: white;
-            text-align: center;
-            font-size: 1rem;
-        }
-        
-        .footer a {
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        
-        .footer a:hover {
-            text-decoration: underline;
-        }
-        
-        .create-account-info {
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 20px;
-            max-width: 450px;
-            color: #333;
-        }
-        
-        .create-account-info h3 {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-            color: #2c3e50;
-        }
-        
-        .benefits {
-            list-style: none;
-            margin: 25px 0;
-        }
-        
-        .benefits li {
-            margin-bottom: 15px;
-            padding-left: 30px;
-            position: relative;
-        }
-        
-        .benefits li i {
-            position: absolute;
-            left: 0;
-            top: 5px;
-            color: #667eea;
-            font-size: 1.2rem;
-        }
-        
-        .password-strength {
-            height: 5px;
-            background: #e1e5ee;
-            border-radius: 3px;
-            margin-top: 8px;
-            overflow: hidden;
-        }
-        
-        .strength-meter {
-            height: 100%;
-            width: 0;
-            background: #dc3545;
-            transition: width 0.3s, background 0.3s;
-        }
-        
-        .alert {
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-weight: 500;
-        }
-        
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .stats-info {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            color: white;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .stats-info h4 {
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-        
-        .stat-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        
-        .stat-number {
-            font-size: 1.5rem;
-            font-weight: bold;
-            display: block;
-        }
-        
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        
-        @media (max-width: 768px) {
-            .card-container {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .create-account-info {
-                margin-top: 30px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <div class="container">
-        <div class="logo">
+<body class="admin">
+    <div class="admin-container">
+        <div class="admin-logo">
             <i class="fas fa-user-shield"></i>
             <h1>BookStore Admin</h1>
         </div>
@@ -502,78 +189,78 @@ function getAdminStats($pdo) {
         $stats = getAdminStats($pdo);
         if ($stats): 
         ?>
-        <div class="stats-info">
+        <div class="admin-stats-info">
             <h4>Statistiques de l'administration</h4>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <span class="stat-number"><?php echo $stats['total_admins']; ?></span>
-                    <span class="stat-label">Total Admins</span>
+            <div class="admin-stats-grid">
+                <div class="admin-stat-item">
+                    <span class="admin-stat-number"><?php echo $stats['total_admins']; ?></span>
+                    <span class="admin-stat-label">Total Admins</span>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-number"><?php echo $stats['active_admins']; ?></span>
-                    <span class="stat-label">Actifs</span>
+                <div class="admin-stat-item">
+                    <span class="admin-stat-number"><?php echo $stats['active_admins']; ?></span>
+                    <span class="admin-stat-label">Actifs</span>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-number"><?php echo $stats['recent_logins']; ?></span>
-                    <span class="stat-label">Connexions récentes</span>
+                <div class="admin-stat-item">
+                    <span class="admin-stat-number"><?php echo $stats['recent_logins']; ?></span>
+                    <span class="admin-stat-label">Connexions récentes</span>
                 </div>
             </div>
         </div>
         <?php endif; ?>
         
-        <div class="card-container">
+        <div class="admin-card-container">
             <!-- Login Card -->
-            <div class="card" id="loginCard">
-                <div class="card-header">
+            <div class="admin-card" id="loginCard">
+                <div class="admin-card-header">
                     <h2>Connexion Administration</h2>
                     <p>Accédez au panneau d'administration BookStore</p>
                 </div>
-                <div class="card-body">
+                <div class="admin-card-body">
                     <?php if (isset($login_error)): ?>
-                        <div class="alert alert-error">
+                        <div class="admin-alert admin-alert-error">
                             <i class="fas fa-exclamation-triangle"></i>
                             <?php echo $login_error; ?>
                         </div>
                     <?php endif; ?>
                     
                     <?php if (isset($success_message)): ?>
-                        <div class="alert alert-success">
+                        <div class="admin-alert admin-alert-success">
                             <i class="fas fa-check-circle"></i>
                             <?php echo $success_message; ?>
                         </div>
                     <?php endif; ?>
                     
                     <form id="loginForm" method="POST" action="">
-                        <div class="form-group">
+                        <div class="admin-form-group">
                             <label for="loginEmail">Adresse e-mail</label>
-                            <div class="input-icon">
+                            <div class="admin-input-icon">
                                 <i class="fas fa-envelope"></i>
                                 <input type="email" id="loginEmail" name="admin_username" placeholder="admin@bookstore.com" required>
                             </div>
                         </div>
                         
-                        <div class="form-group">
+                        <div class="admin-form-group">
                             <label for="loginPassword">Mot de passe</label>
-                            <div class="input-icon">
+                            <div class="admin-input-icon">
                                 <i class="fas fa-lock"></i>
                                 <input type="password" id="loginPassword" name="admin_password" placeholder="Entrez votre mot de passe" required>
                             </div>
                         </div>
                         
-                        <div class="form-group">
-                            <button type="submit" class="btn" name="admin_login">
+                        <div class="admin-form-group">
+                            <button type="submit" class="admin-btn" name="admin_login">
                                 <i class="fas fa-sign-in-alt"></i> Se connecter
                             </button>
                         </div>
                         
-                        <div class="links">
+                        <div class="admin-links">
                             <a href="#" id="forgotPassword">Mot de passe oublié ?</a>
                             <a href="#" id="createAccountLink">Créer un compte admin</a>
                         </div>
                     </form>
                     
-                    <div class="form-group" style="margin-top: 30px;">
-                        <a href="index.php" class="btn btn-tertiary">
+                    <div class="admin-form-group" style="margin-top: 30px;">
+                        <a href="index.php" class="admin-btn admin-btn-tertiary">
                             <i class="fas fa-home"></i> Retour à l'accueil
                         </a>
                     </div>
@@ -581,68 +268,68 @@ function getAdminStats($pdo) {
             </div>
             
             <!-- Create Account Card (Hidden by default) -->
-            <div class="card" id="createAccountCard" style="display: none;">
-                <div class="card-header">
+            <div class="admin-card" id="createAccountCard" style="display: none;">
+                <div class="admin-card-header">
                     <h2>Créer un compte admin</h2>
                     <p>Nouveau compte d'administration</p>
                 </div>
-                <div class="card-body">
+                <div class="admin-card-body">
                     <?php if (isset($create_error)): ?>
-                        <div class="alert alert-error">
+                        <div class="admin-alert admin-alert-error">
                             <i class="fas fa-exclamation-triangle"></i>
                             <?php echo $create_error; ?>
                         </div>
                     <?php endif; ?>
                     
                     <form id="createAccountForm" method="POST" action="">
-                        <div class="form-group">
+                        <div class="admin-form-group">
                             <label for="fullName">Nom complet</label>
-                            <div class="input-icon">
+                            <div class="admin-input-icon">
                                 <i class="fas fa-user"></i>
                                 <input type="text" id="fullName" name="full_name" placeholder="Entrez votre nom complet" required>
                             </div>
                         </div>
                         
-                        <div class="form-group">
+                        <div class="admin-form-group">
                             <label for="email">Adresse e-mail</label>
-                            <div class="input-icon">
+                            <div class="admin-input-icon">
                                 <i class="fas fa-envelope"></i>
                                 <input type="email" id="email" name="email" placeholder="Entrez votre e-mail" required>
                             </div>
                         </div>
                         
-                        <div class="form-group">
+                        <div class="admin-form-group">
                             <label for="password">Mot de passe</label>
-                            <div class="input-icon">
+                            <div class="admin-input-icon">
                                 <i class="fas fa-lock"></i>
                                 <input type="password" id="password" name="password" placeholder="Créez un mot de passe" required>
                             </div>
-                            <div class="password-strength">
-                                <div class="strength-meter" id="passwordStrength"></div>
+                            <div class="admin-password-strength">
+                                <div class="admin-strength-meter" id="passwordStrength"></div>
                             </div>
                         </div>
                         
-                        <div class="form-group">
+                        <div class="admin-form-group">
                             <label for="confirmPassword">Confirmez le mot de passe</label>
-                            <div class="input-icon">
+                            <div class="admin-input-icon">
                                 <i class="fas fa-lock"></i>
                                 <input type="password" id="confirmPassword" name="confirm_password" placeholder="Confirmez votre mot de passe" required>
                             </div>
                         </div>
                         
-                        <div class="form-group">
-                            <button type="submit" class="btn" name="create_account">
+                        <div class="admin-form-group">
+                            <button type="submit" class="admin-btn" name="create_account">
                                 <i class="fas fa-user-plus"></i> Créer le compte
                             </button>
                         </div>
                     </form>
                     
-                    <div class="links">
+                    <div class="admin-links">
                         <a href="#" id="backToLogin">Retour à la connexion</a>
                     </div>
                     
-                    <div class="form-group" style="margin-top: 20px;">
-                        <a href="index.php" class="btn btn-tertiary">
+                    <div class="admin-form-group" style="margin-top: 20px;">
+                        <a href="index.php" class="admin-btn admin-btn-tertiary">
                             <i class="fas fa-home"></i> Retour à l'accueil
                         </a>
                     </div>
@@ -650,9 +337,9 @@ function getAdminStats($pdo) {
             </div>
             
             <!-- Admin Benefits -->
-            <div class="create-account-info" id="benefitsInfo">
+            <div class="admin-create-account-info" id="benefitsInfo">
                 <h3>Administration BookStore</h3>
-                <ul class="benefits">
+                <ul class="admin-benefits">
                     <li><i class="fas fa-cogs"></i> Gestion complète du catalogue de livres</li>
                     <li><i class="fas fa-users"></i> Administration des comptes utilisateurs</li>
                     <li><i class="fas fa-chart-line"></i> Tableaux de bord et statistiques</li>
@@ -663,7 +350,7 @@ function getAdminStats($pdo) {
             </div>
         </div>
         
-        <div class="footer">
+        <div class="admin-footer">
             <p>&copy; 2023 BookStore Administration. Tous droits réservés. | 
                 <a href="#">Politique de confidentialité</a> | 
                 <a href="#">Conditions d'utilisation</a>

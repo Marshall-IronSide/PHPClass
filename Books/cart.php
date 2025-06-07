@@ -40,6 +40,9 @@ if (isset($_POST['checkout'])) {
     $customer_phone = trim($_POST['customer_phone']);
     $shipping_address = trim($_POST['shipping_address']);
     
+    // Debug: Log checkout attempt
+    error_log("Checkout attempt - Name: $customer_name, Email: $customer_email");
+    
     if ($customer_name && $customer_email && $shipping_address) {
         // Get cart items
         $stmt = $pdo->prepare("SELECT c.*, b.title, b.price, b.stock_quantity 
@@ -71,6 +74,9 @@ if (isset($_POST['checkout'])) {
                     $stmt->execute([$customer_name, $customer_email, $customer_phone, $shipping_address, $total_amount]);
                     $order_id = $pdo->lastInsertId();
                     
+                    // Debug: Log order creation
+                    error_log("Order created with ID: $order_id");
+                    
                     // Add order items and update stock
                     foreach ($cart_items as $item) {
                         // Add to order items
@@ -88,33 +94,60 @@ if (isset($_POST['checkout'])) {
                     
                     $pdo->commit();
                     
+                    // Debug: Log successful checkout
+                    error_log("Checkout successful, redirecting to success page");
+                    
+                    // Ensure no output before redirect
+                    ob_clean();
                     header('Location: cart.php?success=1&order_id=' . $order_id);
-                    exit;
+                    exit();
                 } catch (Exception $e) {
                     $pdo->rollBack();
+                    error_log("Checkout error: " . $e->getMessage());
                     $error = "Order processing failed. Please try again.";
                 }
             } else {
                 $error = "Some items in your cart are no longer available in the requested quantity.";
             }
+        } else {
+            $error = "Votre panier est vide.";
         }
     } else {
         $error = "Please fill in all required fields.";
     }
 }
 
-// Get cart items
-$stmt = $pdo->prepare("SELECT c.*, b.title, b.author, b.price, b.image_url, b.stock_quantity 
-                       FROM cart c 
-                       JOIN books b ON c.book_id = b.id 
-                       WHERE c.session_id = ? 
-                       ORDER BY c.created_at DESC");
-$stmt->execute([$_SESSION['session_id']]);
-$cart_items = $stmt->fetchAll();
+// Check if we should show success message (don't load cart items if success)
+$show_success = isset($_GET['success']) && isset($_GET['order_id']) && !empty($_GET['order_id']);
 
-$total_amount = 0;
-foreach ($cart_items as $item) {
-    $total_amount += $item['price'] * $item['quantity'];
+// Debug: Log success check
+if (isset($_GET['success'])) {
+    error_log("Success parameter detected: " . $_GET['success']);
+    error_log("Order ID parameter: " . (isset($_GET['order_id']) ? $_GET['order_id'] : 'not set'));
+}
+
+// Get cart items only if not showing success message
+if (!$show_success) {
+    $stmt = $pdo->prepare("SELECT c.*, b.title, b.author, b.price, b.image_url, b.stock_quantity 
+                           FROM cart c 
+                           JOIN books b ON c.book_id = b.id 
+                           WHERE c.session_id = ? 
+                           ORDER BY c.created_at DESC");
+    $stmt->execute([$_SESSION['session_id']]);
+    $cart_items = $stmt->fetchAll();
+
+    $total_amount = 0;
+    foreach ($cart_items as $item) {
+        $total_amount += $item['price'] * $item['quantity'];
+    }
+} else {
+    $cart_items = [];
+    $total_amount = 0;
+}
+
+// Additional debug for success display
+if ($show_success) {
+    error_log("Showing success message for order ID: " . $_GET['order_id']);
 }
 ?>
 <!DOCTYPE html>
@@ -124,7 +157,7 @@ foreach ($cart_items as $item) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shopping Cart - BookStore</title>
     <!-- Font Awesome CDN -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -365,10 +398,38 @@ foreach ($cart_items as $item) {
             padding: 3rem;
             text-align: center;
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 2rem auto;
+            border: 3px solid #4caf50;
         }
         .order-success h2 {
             color: #4caf50;
             margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+        .order-success .success-icon {
+            font-size: 4rem;
+            color: #4caf50;
+            margin-bottom: 1rem;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .order-success .order-details {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            border-left: 4px solid #4caf50;
+        }
+        .order-success .celebration-text {
+            color: #4caf50;
+            font-size: 1.2rem;
+            margin: 1.5rem 0;
+            font-weight: bold;
         }
         footer {
             background: #33475b;
@@ -418,6 +479,17 @@ foreach ($cart_items as $item) {
                 margin-top: 0.5rem;
             }
         }
+        
+        /* Debug styles - Remove in production */
+        .debug-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -431,7 +503,7 @@ foreach ($cart_items as $item) {
             </ul>
             <a href="cart.php" class="cart-icon">
                 <i class="fa-solid fa-shopping-cart"></i> Panier
-                <span class="cart-count"><?php echo getCartCount(); ?></span>
+                <span class="cart-count"><?php echo !$show_success ? getCartCount() : 0; ?></span>
             </a>
         </nav>
     </header>
@@ -439,12 +511,33 @@ foreach ($cart_items as $item) {
     <div class="container main-content">
         <h1 class="page-title">Mon panier</h1>
 
-        <?php if (isset($_GET['success'])): ?>
+        <!-- Debug info - Remove in production -->
+        <?php if (isset($_GET['debug'])): ?>
+            <div class="debug-info">
+                <strong>Debug Info:</strong><br>
+                success param: <?php echo isset($_GET['success']) ? $_GET['success'] : 'not set'; ?><br>
+                order_id param: <?php echo isset($_GET['order_id']) ? $_GET['order_id'] : 'not set'; ?><br>
+                show_success: <?php echo $show_success ? 'true' : 'false'; ?><br>
+                POST data: <?php echo !empty($_POST) ? 'present' : 'empty'; ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($show_success): ?>
             <div class="order-success">
-                <h2>✅ Commande passée avec succès !</h2>
-                <p>Merci pour votre commande. Votre numéro de commande est : <strong>#<?php echo $_GET['order_id']; ?></strong></p>
-                <p>Vous recevrez un email de confirmation sous peu.</p>
-                <a href="catalog.php" class="btn" style="margin-top: 1rem;">Continuer mes achats</a>
+                <div class="success-icon">✅</div>
+                <h2>Commande passée avec succès !</h2>
+                <div class="order-details">
+                    <p><strong>Numéro de commande : #<?php echo htmlspecialchars($_GET['order_id']); ?></strong></p>
+                    <p>Vous recevrez un email de confirmation sous peu.</p>
+                </div>
+                <div class="celebration-text">
+                    🎉 Félicitations ! Votre achat a bien été enregistré. <br>
+                    Nous traitons votre commande et vous contacterons rapidement pour la livraison.
+                </div>
+                <div style="margin-top: 2rem;">
+                    <a href="catalog.php" class="btn" style="margin-right: 1rem;">Continuer mes achats</a>
+                    <a href="index.php" class="btn" style="background: #6c757d;">Retour à l'accueil</a>
+                </div>
             </div>
         <?php else: ?>
             <?php if (isset($_GET['updated'])): ?>
@@ -460,7 +553,7 @@ foreach ($cart_items as $item) {
             <?php endif; ?>
             
             <?php if (isset($error)): ?>
-                <div class="alert error"><?php echo $error; ?></div>
+                <div class="alert error"><?php echo htmlspecialchars($error); ?></div>
             <?php endif; ?>
 
             <?php if (empty($cart_items)): ?>
@@ -531,7 +624,7 @@ foreach ($cart_items as $item) {
                                 $subtotal += $item_total;
                                 $item_count += $item['quantity'];
                             }
-                            $shipping = $subtotal > 50 ? 0 : 5.99;
+                            $shipping = $subtotal > 750 ? 0 : 100; // 100 FCFA shipping if under 750 FCFA
                             $tax = $subtotal * 0.08; // 8% tax
                             $total = $subtotal + $shipping + $tax;
                             ?>
@@ -555,7 +648,7 @@ foreach ($cart_items as $item) {
                             
                             <?php if ($shipping > 0): ?>
                                 <p style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">
-                                    🚚 Livraison à partir de 750 FCFA
+                                    🚚 Livraison gratuite à partir de 750 FCFA
                                 </p>
                             <?php endif; ?>
                         </div>
@@ -632,7 +725,6 @@ foreach ($cart_items as $item) {
         document.querySelectorAll('.quantity-input').forEach(input => {
             input.addEventListener('change', function() {
                 if (this.value < 1) this.value = 1;
-                // Form will auto-submit due to onchange attribute
             });
         });
 
@@ -640,9 +732,17 @@ foreach ($cart_items as $item) {
         document.querySelector('.checkout-form')?.addEventListener('submit', function(e) {
             const btn = this.querySelector('button[name="checkout"]');
             if (btn) {
-                btn.textContent = '⏳ Processing Order...';
+                btn.textContent = '⏳ Traitement en cours...';
                 btn.disabled = true;
             }
+        });
+
+        // Auto-hide alerts after 5 seconds
+        document.querySelectorAll('.alert').forEach(alert => {
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            }, 5000);
         });
     </script>
 </body>

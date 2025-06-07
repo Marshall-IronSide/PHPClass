@@ -1,0 +1,963 @@
+/* =============================================================================
+   BOOKSTORE - FICHIER CSS UNIFIÉ
+   ============================================================================= */
+
+/* =============================================================================
+   RESET ET BASE
+   ============================================================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+/* Pour la page d'accueil qui n'a pas de background-color */
+body.home {
+    background-color: transparent;
+}
+
+/* Pour la page admin avec background spécial */
+body.admin {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* =============================================================================
+   CONTENEUR PRINCIPAL
+   ============================================================================= */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Conteneur spécifique pour admin */
+.admin-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 1200px;
+    width: 100%;
+}
+
+/* =============================================================================
+   HEADER ET NAVIGATION
+   ============================================================================= */
+header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+/* Logo spécifique pour admin */
+.admin-logo {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+    color: white;
+}
+
+.admin-logo i {
+    font-size: 2.5rem;
+    margin-right: 15px;
+}
+
+.admin-logo h1 {
+    font-size: 2.8rem;
+    font-weight: bold;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    transition: opacity 0.3s;
+}
+
+.nav-links a:hover {
+    opacity: 0.8;
+}
+
+.cart-icon {
+    position: relative;
+    background: rgba(255,255,255,0.2);
+    padding: 10px 15px;
+    border-radius: 25px;
+    text-decoration: none;
+    color: white;
+}
+
+.cart-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ff4757;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* =============================================================================
+   SECTION HERO (PAGE D'ACCUEIL)
+   ============================================================================= */
+.hero {
+    background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3') center/cover;
+    color: white;
+    text-align: center;
+    padding: 100px 0;
+}
+
+.hero h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+/* =============================================================================
+   SECTIONS GÉNÉRALES
+   ============================================================================= */
+.section {
+    padding: 60px 0;
+    background: #f3f6fa;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.7rem;
+    font-weight: 700;
+    color: #222;
+    letter-spacing: 1px;
+    margin-bottom: 2.5rem;
+    position: relative;
+    font-family: 'Segoe UI', 'Montserrat', Arial, sans-serif;
+}
+
+.section-title::after {
+    content: "";
+    display: block;
+    margin: 18px auto 0 auto;
+    width: 80px;
+    height: 5px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #667eea 0%, #5ec6fa 100%);
+    opacity: 0.7;
+}
+
+/* =============================================================================
+   FILTRES (PAGE CATALOGUE)
+   ============================================================================= */
+.filters {
+    background: #fff;
+    padding: 2rem 1.5rem;
+    margin-bottom: 2rem;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(102, 126, 234, 0.08);
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.filters-form {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.filter-group {
+    flex: 1 1 250px;
+    min-width: 220px;
+}
+
+.filter-group label {
+    display: block;
+    margin-bottom: 0.6rem;
+    font-weight: bold;
+    color: #222;
+    font-size: 1.08rem;
+}
+
+.filter-group select,
+.filter-group input[type="text"] {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 1.08rem;
+    background: #f7f9fc;
+    transition: border 0.2s;
+    outline: none;
+}
+
+.filter-group select:focus,
+.filter-group input[type="text"]:focus {
+    border-color: #667eea;
+    background: #fff;
+}
+
+/* =============================================================================
+   FILTRES DE CATÉGORIES
+   ============================================================================= */
+.category-filters {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.category-btn {
+    padding: 10px 24px;
+    border-radius: 25px;
+    border: 2px solid #2196f3;
+    background: transparent;
+    color: #2196f3;
+    font-weight: bold;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+    font-size: 1rem;
+}
+
+.category-btn.active,
+.category-btn:hover {
+    background: #2196f3;
+    color: #fff;
+    border-color: #2196f3;
+}
+
+/* =============================================================================
+   BOUTONS
+   ============================================================================= */
+.btn {
+    display: inline-block;
+    background: #667eea;
+    color: white;
+    padding: 12px 30px;
+    text-decoration: none;
+    border-radius: 25px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+/* Variante pour les filtres */
+.filters .btn {
+    padding: 12px 28px;
+    border-radius: 10px;
+    font-size: 1.08rem;
+    font-weight: 500;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.filters .btn:hover {
+    background: #5563c1;
+    transform: none;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: #fff;
+    margin-left: 0.5rem;
+}
+
+.btn-secondary:hover {
+    background: #495057;
+}
+
+/* Boutons spécifiques pour admin */
+.admin-btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    margin-top: 10px;
+    text-decoration: none;
+    text-align: center;
+}
+
+.admin-btn:hover {
+    background: #5a6fd8;
+    transform: translateY(-2px);
+}
+
+.admin-btn:active {
+    transform: translateY(0);
+}
+
+.admin-btn-secondary {
+    background: #6c757d;
+}
+
+.admin-btn-secondary:hover {
+    background: #5a6268;
+}
+
+.admin-btn-tertiary {
+    background: transparent;
+    color: #667eea;
+    border: 2px solid #667eea;
+}
+
+.admin-btn-tertiary:hover {
+    background: rgba(102, 126, 234, 0.1);
+}
+
+/* =============================================================================
+   GRILLE DE LIVRES
+   ============================================================================= */
+.books-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+/* Grille spécifique pour la page d'accueil */
+.section .books-grid {
+    grid-template-columns: repeat(4, 1fr);
+    background: none;
+    border-radius: 18px;
+    padding: 30px 0;
+}
+
+/* =============================================================================
+   CARTES DE LIVRES
+   ============================================================================= */
+.book-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+/* Style spécifique pour la page d'accueil */
+.section .book-card {
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(102, 126, 234, 0.10), 0 1.5px 8px rgba(51,71,91,0.08);
+    border: 1.5px solid #e3e8f0;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 480px;
+}
+
+.book-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+.section .book-card:hover {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.18);
+}
+
+.book-image {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+}
+
+/* Style spécifique pour la page d'accueil */
+.section .book-image {
+    height: 320px;
+    object-position: center;
+    background: #f4f4f4;
+    border-bottom: 1px solid #eee;
+    display: block;
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+}
+
+.book-info {
+    padding: 1.5rem;
+}
+
+/* Style spécifique pour la page d'accueil */
+.section .book-info {
+    flex: 1;
+    padding: 1.2rem 1.2rem 1.5rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.book-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+/* Style spécifique pour la page d'accueil */
+.section .book-title {
+    font-size: 1.08rem;
+    margin-bottom: 0.3rem;
+    color: #222;
+}
+
+.book-author {
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+/* Style spécifique pour la page d'accueil */
+.section .book-author {
+    font-size: 0.98rem;
+}
+
+.book-category {
+    background: #e1f5fe;
+    color: #0277bd;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+
+/* Style spécifique pour la page d'accueil */
+.section .book-category {
+    padding: 4px 10px;
+    font-size: 0.85rem;
+}
+
+.book-price {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 1rem;
+}
+
+/* Style spécifique pour la page d'accueil */
+.section .book-price {
+    font-size: 1.25rem;
+}
+
+.book-stock {
+    font-size: 0.9rem;
+    color: #28a745;
+    margin-bottom: 1rem;
+}
+
+.book-stock.low {
+    color: #ffc107;
+}
+
+.book-stock.out {
+    color: #dc3545;
+}
+
+/* =============================================================================
+   ACTIONS DES LIVRES
+   ============================================================================= */
+.book-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Style spécifique pour la page d'accueil */
+.section .book-actions {
+    gap: 8px;
+    margin-top: 0.5rem;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+}
+
+.section .book-actions .btn {
+    border-radius: 6px;
+    padding: 12px 0;
+    font-size: 1rem;
+    background: #667eea;
+    color: #fff;
+    border: none;
+    box-shadow: none;
+    font-weight: 500;
+    transition: background 0.2s;
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: center;
+    width: 100%;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.section .book-actions .btn:last-child {
+    background: #495057;
+    margin-left: 0;
+}
+
+.section .book-actions .btn:hover {
+    background: #5563c1;
+    transform: none;
+    box-shadow: none;
+}
+
+.section .book-actions .btn:last-child:hover {
+    background: #222;
+}
+
+.quantity-input {
+    width: 60px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    text-align: center;
+}
+
+/* Style spécifique pour la page d'accueil */
+.section .book-actions .quantity-input {
+    border-radius: 6px;
+    width: 100%;
+    height: 48px;
+    font-size: 1rem;
+    flex: 1 1 0;
+    min-width: 0;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    transition: border 0.2s;
+}
+
+/* =============================================================================
+   STYLES ADMIN - CARTES ET CONTENEURS
+   ============================================================================= */
+.admin-card-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.admin-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+    width: 100%;
+    max-width: 450px;
+    overflow: hidden;
+    transition: transform 0.4s, box-shadow 0.4s;
+}
+
+.admin-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+}
+
+.admin-card-header {
+    background: #2c3e50;
+    color: white;
+    padding: 25px;
+    text-align: center;
+}
+
+.admin-card-header h2 {
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+}
+
+.admin-card-body {
+    padding: 30px;
+}
+
+/* =============================================================================
+   STYLES ADMIN - FORMULAIRES
+   ============================================================================= */
+.admin-form-group {
+    margin-bottom: 20px;
+}
+
+.admin-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.admin-input-icon {
+    position: relative;
+}
+
+.admin-input-icon i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #667eea;
+}
+
+.admin-input-icon input {
+    width: 100%;
+    padding: 14px 14px 14px 45px;
+    border: 2px solid #e1e5ee;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.admin-input-icon input:focus {
+    border-color: #667eea;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+/* =============================================================================
+   STYLES ADMIN - LIENS ET NAVIGATION
+   ============================================================================= */
+.admin-links {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.admin-links a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.admin-links a:hover {
+    color: #5a6fd8;
+    text-decoration: underline;
+}
+
+.admin-footer {
+    margin-top: 40px;
+    color: white;
+    text-align: center;
+    font-size: 1rem;
+}
+
+.admin-footer a {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.admin-footer a:hover {
+    text-decoration: underline;
+}
+
+/* =============================================================================
+   STYLES ADMIN - INFORMATIONS ET STATISTIQUES
+   ============================================================================= */
+.admin-create-account-info {
+    background: #f8f9fa;
+    padding: 30px;
+    border-radius: 20px;
+    max-width: 450px;
+    color: #333;
+}
+
+.admin-create-account-info h3 {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+.admin-benefits {
+    list-style: none;
+    margin: 25px 0;
+}
+
+.admin-benefits li {
+    margin-bottom: 15px;
+    padding-left: 30px;
+    position: relative;
+}
+
+.admin-benefits li i {
+    position: absolute;
+    left: 0;
+    top: 5px;
+    color: #667eea;
+    font-size: 1.2rem;
+}
+
+.admin-password-strength {
+    height: 5px;
+    background: #e1e5ee;
+    border-radius: 3px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.admin-strength-meter {
+    height: 100%;
+    width: 0;
+    background: #dc3545;
+    transition: width 0.3s, background 0.3s;
+}
+
+.admin-stats-info {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 15px;
+    color: white;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.admin-stats-info h4 {
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.admin-stat-item {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.admin-stat-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    display: block;
+}
+
+.admin-stat-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* =============================================================================
+   ALERTES ET MESSAGES
+   ============================================================================= */
+.alert {
+    background: #4caf50;
+    color: white;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.no-results {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+}
+
+.results-count {
+    margin-bottom: 1rem;
+    color: #666;
+}
+
+/* Alertes spécifiques pour admin */
+.admin-alert {
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.admin-alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.admin-alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* =============================================================================
+   FOOTER
+   ============================================================================= */
+footer {
+    background: #33475b;
+    color: #fff;
+    padding: 3rem 0 1.5rem 0;
+    margin-top: 3rem;
+}
+
+footer h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 3px solid #5ec6fa;
+    display: inline-block;
+    padding-bottom: 0.2rem;
+}
+
+footer ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 1rem;
+}
+
+footer ul li {
+    margin-bottom: 0.5rem;
+}
+
+footer ul li a {
+    color: #fff;
+    text-decoration: underline;
+}
+
+footer hr {
+    border: none;
+    border-top: 1px solid #46607a;
+    margin: 2rem 0 1rem 0;
+}
+
+footer .footer-content {
+    max-width: 1200px;
+    margin: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: space-between;
+}
+
+footer .footer-section {
+    flex: 1 1 250px;
+    min-width: 220px;
+}
+
+footer .footer-section.links {
+    flex: 1 1 180px;
+    min-width: 180px;
+}
+
+footer .footer-copyright {
+    text-align: center;
+    color: #cfd8dc;
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================= */
+@media (max-width: 1100px) {
+    .section .books-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-links {
+        display: none;
+    }
+    
+    .hero h1 {
+        font-size: 2rem;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .filters-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-group {
+        min-width: auto;
+    }
+    
+    /* Responsive pour admin */
+    .admin-card-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .admin-create-account-info {
+        margin-top: 30px;
+    }
+}
+
+@media (max-width: 700px) {
+    .section .books-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .books-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .category-filters {
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+    }
+    
+    .category-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+}
+

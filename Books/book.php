@@ -399,35 +399,103 @@ function traduireCategorie($cat) {
             font-size: 1.1rem;
         }
         
-        footer {
-            background: #33475b;
-            color: #fff;
-            padding: 3rem 0 1.5rem 0;
-            margin-top: 3rem;
-        }
-        
-        footer h2 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-            border-bottom: 3px solid #5ec6fa;
-            display: inline-block;
-            padding-bottom: 0.2rem;
-        }
-        
-        footer ul {
-            list-style: none;
-            padding: 0;
-            margin-top: 1rem;
-        }
-        
-        footer ul li {
-            margin-bottom: 0.5rem;
-        }
-        
-        footer a {
-            color: #fff;
-            text-decoration: underline;
-        }
+        /* CORRECTION POUR LE FOOTER - Ajoutez ceci à votre styles2.css */
+
+/* ===== FOOTER STYLES ===== */
+footer {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: #ffffff !important;
+    padding: 3rem 0 1rem 0 !important;
+    margin-top: 4rem !important;
+}
+
+footer h2 {
+    color: #ffffff !important;
+    font-size: 1.2rem !important;
+    margin-bottom: 1rem !important;
+    border-bottom: 2px solid rgba(255,255,255,0.2) !important;
+    padding-bottom: 0.5rem !important;
+}
+
+footer p {
+    color: #e8eaf6 !important;
+    line-height: 1.6 !important;
+    margin-top: 1rem !important;
+}
+
+footer ul {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 1rem 0 !important;
+}
+
+footer ul li {
+    margin-bottom: 0.5rem !important;
+}
+
+footer ul li a {
+    color: #e8eaf6 !important;
+    text-decoration: none !important;
+    transition: color 0.3s ease !important;
+}
+
+footer ul li a:hover {
+    color: #ffffff !important;
+    text-decoration: underline !important;
+}
+
+/* Ligne de séparation dans le footer */
+footer hr {
+    border: none !important;
+    border-top: 1px solid rgba(255,255,255,0.2) !important;
+    margin: 2rem 0 1rem 0 !important;
+}
+
+/* Copyright text */
+footer div[style*="text-align: center"] {
+    color: #cfd8dc !important;
+    font-size: 0.9rem !important;
+}
+
+/* Container du footer */
+footer .container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 20px !important;
+}
+
+/* Flexbox layout pour le footer */
+footer .container > div[style*="display: flex"] {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 2rem !important;
+    justify-content: space-between !important;
+}
+
+footer .container > div[style*="display: flex"] > div {
+    flex: 1 1 250px !important;
+    min-width: 220px !important;
+}
+
+/* Responsive pour le footer */
+@media (max-width: 768px) {
+    footer {
+        padding: 2rem 0 1rem 0 !important;
+    }
+    
+    footer .container > div[style*="display: flex"] {
+        flex-direction: column !important;
+        gap: 1.5rem !important;
+    }
+    
+    footer .container > div[style*="display: flex"] > div {
+        min-width: auto !important;
+    }
+    
+    footer h2 {
+        font-size: 1.1rem !important;
+    }
+}
         
         @media (max-width: 768px) {
             .book-main {

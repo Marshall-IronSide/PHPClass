@@ -110,37 +110,7 @@ $featured_books = $stmt->fetchAll();
     </section>
 
     <!-- Pied de page commun -->
-    <footer>
-        <div class="footer-content">
-            <div class="footer-section">
-                <h2>À propos de BookStore</h2>
-                <p>
-                    Votre destination privilégiée pour découvrir et acheter des livres dans tous les genres. Nous avons à cœur de connecter les lecteurs à leur prochain livre préféré.
-                </p>
-            </div>
-            <div class="footer-section links">
-                <h2>Liens utiles</h2>
-                <ul>
-                    <li><a href="index.php">Accueil</a></li>
-                    <li><a href="catalog.php">Catalogue</a></li>
-                    <li><a href="cart.php">Panier</a></li>
-                    <li><a href="admin.php">Admin</a></li>
-                </ul>
-            </div>
-            <div class="footer-section">
-                <h2>Contact</h2>
-                <ul>
-                    <li>Email : marshallironside7@gmail.com</li>
-                    <li>Téléphone : +228 70 09 74 54</li>
-                    <li>Adresse : Avédji-Lomé TOGO</li>
-                </ul>
-            </div>
-        </div>
-        <hr>
-        <div class="footer-copyright">
-            &copy; 2025 BookStore. Tous droits réservés.
-        </div>
-    </footer>
+    <?php include 'footer.php'; ?>
 
     <script>
         // Animation simple du panier

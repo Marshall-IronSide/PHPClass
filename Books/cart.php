@@ -113,7 +113,7 @@ $cart_items = $cart_items ?? $stmt->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shopping Cart - BookStore</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link rel="stylesheet" href="styles2.css">
+    <link rel="stylesheet" href="styles2.css?v=2">
 </head>
 <body>
     <header>
@@ -238,7 +238,7 @@ $cart_items = $cart_items ?? $stmt->fetchAll();
                         </div>
                         <?php if ($shipping > 0): ?>
                             <p style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">
-                                🚚 Livraison gratuite à partir de 750 FCFA
+                                🚚 Livraison gratuite à partir de 10000 FCFA
                             </p>
                         <?php endif; ?>
                     </div>

@@ -1,10 +1,8 @@
 <?php
 // Connexion à la base admin_db (pour logs/admins)
 include_once 'config2.php';
-
 // Connexion à la base books_db (pour livres et catégories)
 include_once 'config.php';
-//session_start();
 
 if (isset($_POST['logout'])) {
     session_unset();
@@ -93,7 +91,6 @@ if (isset($_POST['edit_book'])) {
     $title = trim($_POST['title']);
     $author = trim($_POST['author']);
     $category_id = $_POST['category'];
-    // CORRECTION: Diviser le prix saisi par 655 pour le stocker en unité de base
     $price = $_POST['price'] / 655;
     $description = trim($_POST['description']);
     
@@ -261,7 +258,6 @@ $books = $pdo->query("SELECT books.*, categories.name AS category_name FROM book
                                     <label for="edit_price">Prix (en FCFA) *</label>
                                     <div class="input-icon">
                                         <i class="fas fa-coins"></i>
-                                        <!-- CORRECTION: Multiplier par 655 pour afficher le prix en FCFA -->
                                         <input type="number" id="edit_price" name="price" step="1" min="0" value="<?php echo round($book_to_edit['price'] * 655); ?>" required>
                                     </div>
                                 </div>
@@ -330,8 +326,7 @@ $books = $pdo->query("SELECT books.*, categories.name AS category_name FROM book
                                     <label for="price">Prix (en FCFA) *</label>
                                     <div class="input-icon">
                                         <i class="fas fa-coins"></i>
-                                        <!-- CORRECTION: Placeholder plus clair -->
-                                        <input type="number" id="price" name="price" step="1" min="0" placeholder="6550" required>
+                                        <input type="number" id="price" name="price" step="1" min="0" placeholder="0" required>
                                     </div>
                                 </div>
                             </div>

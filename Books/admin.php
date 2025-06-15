@@ -3,10 +3,10 @@ session_start();
 
 // Configuration de la base de données
 $host = 'localhost';
-$port = '3377'; // Ajout du port personnalisé
+$port = '3377'; 
 $dbname = 'admin_db';
-$username = 'root'; // Remplacez par votre nom d'utilisateur MySQL
-$password = '';     // Remplacez par votre mot de passe MySQL
+$username = 'root';
+$password = ''; 
 
 try {
     $pdo = new PDO("mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4", $username, $password);

@@ -1,9 +1,9 @@
 <?php
 // Connexion à la base admin_db (pour logs/admins)
-include 'config2.php';
+include_once 'config2.php';
 
 // Connexion à la base books_db (pour livres et catégories)
-include 'config.php';
+include_once 'config.php';
 //session_start();
 
 if (isset($_POST['logout'])) {
@@ -19,14 +19,16 @@ if (!isset($_SESSION['admin_logged_in']) || !$_SESSION['admin_logged_in']) {
     exit;
 }
 
-
+// Variable pour stocker le livre à éditer
+$book_to_edit = null;
 
 // Traitement de l'ajout de livre
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title']) && !isset($_POST['edit_book'])) {
     $title = trim($_POST['title']);
     $author = trim($_POST['author']);
     $category_id = $_POST['category'];
-    $price = $_POST['price'];
+    // CORRECTION: Diviser le prix saisi par 655 pour le stocker en unité de base
+    $price = $_POST['price'] / 655;
     $description = trim($_POST['description']);
     
     if ($title && $author && $category_id && $price) {
@@ -56,6 +58,92 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title'])) {
     }
 }
 
+// Suppression
+if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
+    $id = (int)$_GET['id'];
+    
+    // Enregistrer l'activité de suppression avant de supprimer
+    if (isset($_SESSION['admin_id'])) {
+        // Récupérer le titre du livre avant suppression
+        $stmt_title = $pdo->prepare("SELECT title FROM books WHERE id = ?");
+        $stmt_title->execute([$id]);
+        $book_title = $stmt_title->fetchColumn();
+        
+        if ($book_title) {
+            $log_stmt = $pdo2->prepare("INSERT INTO admin_activity_logs (admin_id, action, description, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)");
+            $log_stmt->execute([
+                $_SESSION['admin_id'],
+                'BOOK_DELETED',
+                'Livre supprimé: ' . $book_title,
+                $_SERVER['REMOTE_ADDR'] ?? 'Unknown',
+                $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown'
+            ]);
+        }
+    }
+    
+    $stmt = $pdo->prepare("DELETE FROM books WHERE id = ?");
+    $stmt->execute([$id]);
+    header('Location: tdb.php?deleted=1');
+    exit;
+}
+
+// Traitement de la modification
+if (isset($_POST['edit_book'])) {
+    $id = (int)$_POST['id'];
+    $title = trim($_POST['title']);
+    $author = trim($_POST['author']);
+    $category_id = $_POST['category'];
+    // CORRECTION: Diviser le prix saisi par 655 pour le stocker en unité de base
+    $price = $_POST['price'] / 655;
+    $description = trim($_POST['description']);
+    
+    if ($title && $author && $category_id && $price) {
+        try {
+            $stmt = $pdo->prepare("UPDATE books SET title = ?, author = ?, category_id = ?, price = ?, description = ? WHERE id = ?");
+            $stmt->execute([$title, $author, $category_id, $price, $description, $id]);
+            
+            // Enregistrer l'activité de modification
+            if (isset($_SESSION['admin_id'])) {
+                $log_stmt = $pdo2->prepare("INSERT INTO admin_activity_logs (admin_id, action, description, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)");
+                $log_stmt->execute([
+                    $_SESSION['admin_id'],
+                    'BOOK_UPDATED',
+                    'Livre modifié: ' . $title,
+                    $_SERVER['REMOTE_ADDR'] ?? 'Unknown',
+                    $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown'
+                ]);
+            }
+            
+            header('Location: tdb.php?updated=1');
+            exit;
+        } catch (Exception $e) {
+            $error_message = "Erreur lors de la modification : " . $e->getMessage();
+        }
+    } else {
+        $error_message = "Veuillez remplir tous les champs obligatoires.";
+    }
+}
+
+// Récupération du livre à éditer (APRÈS le traitement de modification)
+if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) {
+    $id = (int)$_GET['id'];
+    $stmt = $pdo->prepare("SELECT * FROM books WHERE id = ?");
+    $stmt->execute([$id]);
+    $book_to_edit = $stmt->fetch();
+    
+    if (!$book_to_edit) {
+        $error_message = "Livre introuvable.";
+    }
+}
+
+// Messages de confirmation
+if (isset($_GET['deleted'])) {
+    $success_message = "Livre supprimé avec succès !";
+}
+if (isset($_GET['updated'])) {
+    $success_message = "Livre modifié avec succès !";
+}
+
 // Récupérer les catégories (depuis books_db)
 $categories = $pdo->query("SELECT * FROM categories ORDER BY name")->fetchAll();
 
@@ -69,416 +157,7 @@ $books = $pdo->query("SELECT books.*, categories.name AS category_name FROM book
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BookStore | Tableau de bord</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            max-width: 1400px;
-            width: 100%;
-            margin: 0 auto;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            margin-bottom: 30px;
-            color: white;
-        }
-        
-        .logo i {
-            font-size: 2.5rem;
-            margin-right: 15px;
-        }
-        
-        .logo h1 {
-            font-size: 2.8rem;
-            font-weight: bold;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        
-        .admin-header {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            color: white;
-            margin-bottom: 20px;
-            text-align: center;
-            width: 100%;
-            max-width: 1200px;
-            backdrop-filter: blur(10px);
-        }
-        
-        .admin-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .admin-details {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .admin-details i {
-            font-size: 1.2rem;
-        }
-        
-        .logout-btn {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .logout-btn:hover {
-            background: #c0392b;
-            transform: translateY(-2px);
-        }
-        
-        .main-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
-            width: 100%;
-            max-width: 1200px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-        
-        .card-header {
-            background: #2c3e50;
-            color: white;
-            padding: 25px;
-            text-align: center;
-        }
-        
-        .card-header h2 {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
-        }
-        
-        .card-body {
-            padding: 30px;
-        }
-        
-        .navigation-links {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-        
-        .nav-btn {
-            background: #667eea;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .nav-btn:hover {
-            background: #5a6fd8;
-            transform: translateY(-2px);
-        }
-        
-        .alert {
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .form-section {
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-        }
-        
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-        
-        .input-icon {
-            position: relative;
-        }
-        
-        .input-icon i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #667eea;
-        }
-        
-        .input-icon input,
-        .input-icon select,
-        .input-icon textarea {
-            width: 100%;
-            padding: 14px 14px 14px 45px;
-            border: 2px solid #e1e5ee;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-        
-        .input-icon textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-        
-        .input-icon input:focus,
-        .input-icon select:focus,
-        .input-icon textarea:focus {
-            border-color: #667eea;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
-        }
-        
-        .btn {
-            display: inline-block;
-            padding: 14px 20px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            text-align: center;
-        }
-        
-        .btn:hover {
-            background: #5a6fd8;
-            transform: translateY(-2px);
-        }
-        
-        .btn-danger {
-            background: #e74c3c;
-        }
-        
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-        
-        .btn-secondary {
-            background: #6c757d;
-        }
-        
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-        
-        .table-section {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .table-header {
-            background: #2c3e50;
-            color: white;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .table-title {
-            font-size: 1.3rem;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .table-container {
-            overflow-x: auto;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        th, td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #e1e5ee;
-        }
-        
-        th {
-            background: #f8f9fa;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-        
-        tbody tr:hover {
-            background: #f8f9fa;
-        }
-        
-        .price {
-            font-weight: 600;
-            color: #27ae60;
-        }
-        
-        .category-badge {
-            background: #e3f2fd;
-            color: #1976d2;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.9rem;
-            display: inline-block;
-        }
-        
-        .actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        
-        .actions .btn {
-            padding: 8px 12px;
-            font-size: 0.9rem;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6c757d;
-        }
-        
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            opacity: 0.5;
-        }
-        
-        .footer {
-            margin-top: 40px;
-            color: white;
-            text-align: center;
-            font-size: 1rem;
-        }
-        
-        .footer a {
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        
-        .footer a:hover {
-            text-decoration: underline;
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .logo h1 {
-                font-size: 2rem;
-            }
-            
-            .logo i {
-                font-size: 2rem;
-            }
-            
-            .admin-info {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .navigation-links {
-                flex-direction: column;
-            }
-            
-            .table-header {
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .actions {
-                flex-direction: column;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="styles3.css">
 </head>
 <body>
     <div class="container">
@@ -538,66 +217,139 @@ $books = $pdo->query("SELECT books.*, categories.name AS category_name FROM book
                     </div>
                 <?php endif; ?>
                 
-                <!-- Formulaire d'ajout de livre -->
-                <div class="form-section">
-                    <div class="section-title">
-                        <i class="fas fa-plus-circle"></i>
-                        Ajouter un nouveau livre
+                <!-- Formulaire d'édition de livre (affiché en premier si en mode édition) -->
+                <?php if ($book_to_edit): ?>
+                    <div class="form-section" id="edit-book-form">
+                        <div class="section-title">
+                            <i class="fas fa-edit"></i>
+                            Éditer le livre : <?php echo htmlspecialchars($book_to_edit['title']); ?>
+                        </div>
+                        
+                        <form method="POST">
+                            <input type="hidden" name="id" value="<?php echo $book_to_edit['id']; ?>">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="edit_title">Titre du livre *</label>
+                                    <div class="input-icon">
+                                        <i class="fas fa-book"></i>
+                                        <input type="text" id="edit_title" name="title" value="<?php echo htmlspecialchars($book_to_edit['title']); ?>" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="edit_author">Auteur *</label>
+                                    <div class="input-icon">
+                                        <i class="fas fa-user-edit"></i>
+                                        <input type="text" id="edit_author" name="author" value="<?php echo htmlspecialchars($book_to_edit['author']); ?>" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="edit_category">Catégorie *</label>
+                                    <div class="input-icon">
+                                        <i class="fas fa-tags"></i>
+                                        <select id="edit_category" name="category" required>
+                                            <option value="">Sélectionnez une catégorie</option>
+                                            <?php foreach ($categories as $cat): ?>
+                                                <option value="<?php echo $cat['id']; ?>" <?php echo $cat['id'] == $book_to_edit['category_id'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($cat['name']); ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="edit_price">Prix (en FCFA) *</label>
+                                    <div class="input-icon">
+                                        <i class="fas fa-coins"></i>
+                                        <!-- CORRECTION: Multiplier par 655 pour afficher le prix en FCFA -->
+                                        <input type="number" id="edit_price" name="price" step="1" min="0" value="<?php echo round($book_to_edit['price'] * 655); ?>" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="edit_description">Description</label>
+                                <div class="input-icon">
+                                    <i class="fas fa-align-left"></i>
+                                    <textarea id="edit_description" name="description" placeholder="Description du livre (optionnel)"><?php echo htmlspecialchars($book_to_edit['description']); ?></textarea>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 10px;">
+                                <button type="submit" name="edit_book" class="btn">
+                                    <i class="fas fa-save"></i> Enregistrer les modifications
+                                </button>
+                                <a href="tdb.php" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Annuler
+                                </a>
+                            </div>
+                        </form>
                     </div>
-                    
-                    <form method="POST" action="">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="title">Titre du livre *</label>
-                                <div class="input-icon">
-                                    <i class="fas fa-book"></i>
-                                    <input type="text" id="title" name="title" placeholder="Entrez le titre du livre" required>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="author">Auteur *</label>
-                                <div class="input-icon">
-                                    <i class="fas fa-user-edit"></i>
-                                    <input type="text" id="author" name="author" placeholder="Nom de l'auteur" required>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="category">Catégorie *</label>
-                                <div class="input-icon">
-                                    <i class="fas fa-tags"></i>
-                                    <select id="category" name="category" required>
-                                        <option value="">Sélectionnez une catégorie</option>
-                                        <?php foreach ($categories as $cat): ?>
-                                            <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['name']); ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="price">Prix (en FCFA) *</label>
-                                <div class="input-icon">
-                                    <i class="fas fa-coins"></i>
-                                    <input type="number" id="price" name="price" step="1" min="0" placeholder="0" required>
-                                </div>
-                            </div>
+                <?php endif; ?>
+                
+                <!-- Formulaire d'ajout de livre (masqué si en mode édition) -->
+                <?php if (!$book_to_edit): ?>
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="fas fa-plus-circle"></i>
+                            Ajouter un nouveau livre
                         </div>
                         
-                        <div class="form-group">
-                            <label for="description">Description</label>
-                            <div class="input-icon">
-                                <i class="fas fa-align-left"></i>
-                                <textarea id="description" name="description" placeholder="Description du livre (optionnel)"></textarea>
+                        <form method="POST" action="">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="title">Titre du livre *</label>
+                                    <div class="input-icon">
+                                        <i class="fas fa-book"></i>
+                                        <input type="text" id="title" name="title" placeholder="Entrez le titre du livre" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="author">Auteur *</label>
+                                    <div class="input-icon">
+                                        <i class="fas fa-user-edit"></i>
+                                        <input type="text" id="author" name="author" placeholder="Nom de l'auteur" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="category">Catégorie *</label>
+                                    <div class="input-icon">
+                                        <i class="fas fa-tags"></i>
+                                        <select id="category" name="category" required>
+                                            <option value="">Sélectionnez une catégorie</option>
+                                            <?php foreach ($categories as $cat): ?>
+                                                <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['name']); ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="price">Prix (en FCFA) *</label>
+                                    <div class="input-icon">
+                                        <i class="fas fa-coins"></i>
+                                        <!-- CORRECTION: Placeholder plus clair -->
+                                        <input type="number" id="price" name="price" step="1" min="0" placeholder="6550" required>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <button type="submit" class="btn">
-                            <i class="fas fa-plus"></i> Ajouter le livre
-                        </button>
-                    </form>
-                </div>
+                            
+                            <div class="form-group">
+                                <label for="description">Description</label>
+                                <div class="input-icon">
+                                    <i class="fas fa-align-left"></i>
+                                    <textarea id="description" name="description" placeholder="Description du livre (optionnel)"></textarea>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn">
+                                <i class="fas fa-plus"></i> Ajouter le livre
+                            </button>
+                        </form>
+                    </div>
+                <?php endif; ?>
 
                 <!-- Tableau des livres -->
                 <div class="table-section">
@@ -628,7 +380,7 @@ $books = $pdo->query("SELECT books.*, categories.name AS category_name FROM book
                                 </thead>
                                 <tbody>
                                     <?php foreach ($books as $book): ?>
-                                        <tr>
+                                        <tr <?php echo ($book_to_edit && $book['id'] == $book_to_edit['id']) ? 'style="background-color: #e3f2fd;"' : ''; ?>>
                                             <td>#<?php echo $book['id']; ?></td>
                                             <td>
                                                 <strong><?php echo htmlspecialchars($book['title']); ?></strong>
@@ -646,10 +398,11 @@ $books = $pdo->query("SELECT books.*, categories.name AS category_name FROM book
                                                 <?php echo number_format($book['price'] * 655, 0, ',', ' ') . ' FCFA'; ?>
                                             </td>
                                             <td class="actions">
-                                                <a href="edit.php?id=<?php echo $book['id']; ?>" class="btn btn-secondary">
-                                                    <i class="fas fa-edit"></i> Modifier
+                                                <a href="tdb.php?action=edit&id=<?php echo $book['id']; ?>" 
+                                                   class="btn btn-secondary <?php echo ($book_to_edit && $book['id'] == $book_to_edit['id']) ? 'active' : ''; ?>">
+                                                    <i class="fas fa-edit"></i> <?php echo ($book_to_edit && $book['id'] == $book_to_edit['id']) ? 'En cours...' : 'Modifier'; ?>
                                                 </a>
-                                                <a href="delete.php?id=<?php echo $book['id']; ?>" class="btn btn-danger" 
+                                                <a href="tdb.php?action=delete&id=<?php echo $book['id']; ?>" class="btn btn-danger" 
                                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer le livre \'<?php echo htmlspecialchars($book['title']); ?>\' ?')">
                                                     <i class="fas fa-trash"></i> Supprimer
                                                 </a>
@@ -675,14 +428,14 @@ $books = $pdo->query("SELECT books.*, categories.name AS category_name FROM book
     <script>
         // Auto-focus sur le premier champ du formulaire
         document.addEventListener('DOMContentLoaded', function() {
-            const firstInput = document.querySelector('#title');
+            const firstInput = document.querySelector('#title, #edit_title');
             if (firstInput) {
                 firstInput.focus();
             }
         });
         
         // Confirmation avant suppression
-        document.querySelectorAll('.btn-danger[href*="delete.php"]').forEach(function(btn) {
+        document.querySelectorAll('.btn-danger[href*="delete"]').forEach(function(btn) {
             btn.addEventListener('click', function(e) {
                 if (!confirm('Cette action est irréversible. Voulez-vous vraiment supprimer ce livre ?')) {
                     e.preventDefault();

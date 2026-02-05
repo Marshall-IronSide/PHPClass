@@ -1,5 +1,5 @@
 <?php
-// footer.php - Composant footer réutilisable
+//Composant footer réutilisable
 ?>
 <link rel="stylesheet" href="styles2.css">
 <footer>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outils de Gestion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect fill="%234a6b6d" width="1200" height="800"/></svg>');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            overflow: hidden;
+        }
+
+        /* Office background simulation */
+        .office-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #5a7d7f 0%, #4a6b6d 50%, #3a5b5d 100%);
+            opacity: 0.9;
+        }
+
+        /* Ceiling effect */
+        .ceiling {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 25%;
+            background: linear-gradient(180deg, #6a8d8f 0%, #5a7d7f 100%);
+            border-bottom: 2px solid #4a5d5f;
+        }
+
+        .header {
+            position: absolute;
+            top: 20px;
+            left: 40px;
+            right: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .logo-left {
+            font-size: 14px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .logo-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-right span {
+            font-size: 14px;
+        }
+
+        .icon-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .main-title {
+            position: absolute;
+            top: 50px;
+            left: 40px;
+            font-size: 90px;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -2px;
+            max-width: 600px;
+            z-index: 5;
+        }
+
+        .subtitle {
+            position: absolute;
+            bottom: 280px;
+            left: 40px;
+            z-index: 5;
+        }
+
+        .subtitle h2 {
+            font-size: 36px;
+            font-weight: 300;
+            font-style: italic;
+            margin-bottom: 5px;
+        }
+
+        .subtitle p {
+            font-size: 20px;
+            font-weight: 300;
+            font-style: italic;
+        }
+
+        .yellow-line {
+            width: 120px;
+            height: 4px;
+            background: #f4a623;
+            margin-top: 15px;
+        }
+
+        .info-section {
+            position: absolute;
+            bottom: 120px;
+            left: 40px;
+            z-index: 5;
+        }
+
+        .info-block {
+            margin-bottom: 35px;
+        }
+
+        .info-block h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .info-block p {
+            font-size: 16px;
+            font-weight: 300;
+            line-height: 1.4;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            right: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            z-index: 5;
+        }
+
+        .footer-left {
+            font-size: 14px;
+            font-weight: 300;
+        }
+
+        .footer-right {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        /* Decorative elements */
+        .desk-row {
+            position: absolute;
+            width: 100%;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .desk-1 { top: 30%; }
+        .desk-2 { top: 50%; }
+        .desk-3 { top: 70%; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="office-bg"></div>
+        <div class="ceiling"></div>
+        
+        <div class="desk-row desk-1"></div>
+        <div class="desk-row desk-2"></div>
+        <div class="desk-row desk-3"></div>
+
+        <div class="header">
+            <div class="logo-left">AopélogicDl</div>
+            <div class="logo-right">
+                <span>© Ggial Logics</span>
+                <div class="icon-circle">⚙</div>
+            </div>
+        </div>
+
+        <div class="main-title">
+            OUTILSS<br>
+            DE GESTTON<br>
+            iN<br>
+            GÉNEI ONRI<br>
+            LOGICES
+        </div>
+
+        <div class="subtitle">
+            <h2>Ast GenieLogiciel</h2>
+            <p>Maghc-aicel et Sue Trackers</p>
+            <div class="yellow-line"></div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-block">
+                <h3>Attéieres de</h3>
+                <p>Genti le Seinle Tnaglis is GCve Trake<br>
+                ℰ ALU ńghtsike & Gaide Oẞẞ</p>
+            </div>
+
+            <div class="info-block">
+                <h3>Attropmenes LaGiò</h3>
+                <p>× Mages; Restomenty ℰ||||às UK tallan<br>
+                ℰ ACO 36 Trackès</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">Breǵn Lǵs inǵ of</div>
+            <div class="footer-right">∂ℓ<br><span style="font-size: 12px;">©30ǵ©</span></div>
+        </div>
+    </div>
+</body>
+</html>

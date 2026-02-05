@@ -185,7 +185,7 @@ function getAdminStats($pdo) {
         </div>
         
         <?php 
-        // Affichage des statistiques (optionnel)
+        // Affichage des statistiques
         $stats = getAdminStats($pdo);
         if ($stats): 
         ?>
@@ -267,7 +267,7 @@ function getAdminStats($pdo) {
                 </div>
             </div>
             
-            <!-- Create Account Card (Hidden by default) -->
+            <!-- Create Account Card -->
             <div class="admin-card" id="createAccountCard" style="display: none;">
                 <div class="admin-card-header">
                     <h2>Créer un compte admin</h2>
